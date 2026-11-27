@@ -13,9 +13,13 @@ export default async function SettingsPage() {
   if (!user) redirect('/login');
 
   const [profileRes, categories] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
     getCategories(),
   ]);
+
+  if (!profileRes.data) {
+    redirect('/onboarding');
+  }
 
   return <SettingsClient profile={profileRes.data as Profile} categories={categories} />;
 }

@@ -2,23 +2,31 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function RootPage() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  let onboardingCompleted = false;
+
+  try {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .maybeSingle();
+      onboardingCompleted = Boolean(profile?.onboarding_completed);
+    }
+  } catch {
+    redirect('/login');
+  }
 
   if (!user) {
     redirect('/login');
   }
 
-  // Check onboarding status
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_completed')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (!profile || !profile.onboarding_completed) {
+  if (!onboardingCompleted) {
     redirect('/onboarding');
   }
 
