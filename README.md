@@ -6,18 +6,14 @@ Aplikasi manajemen keuangan pribadi modern dengan estetika **21st UI** yang dira
 
 ---
 
-## 🔐 Akun & Autentikasi
+## 🔐 Autentikasi & Akun Pengguna
 
-Aplikasi telah dilengkapi sistem multi-akun terisolasi:
+Aplikasi telah dilengkapi sistem akun terisolasi:
 
-1. **Akun Admin Bawaan**:
-   - **Email**: `Chairulanwarr003@gmail.com`
-   - **Password**: `Chirull00_`
-   - *Tersedia tombol satu-klik "Isi Otomatis Akun Admin" di halaman Login.*
-
-2. **Pendaftaran Akun Baru (User Real)**:
-   - Pengguna dapat membuat akun baru menggunakan alamat Gmail atau email mana pun.
-   - **Data Real Bersih**: Akun baru dimulai dengan data saldo `Rp0`, 0 transaksi, 0 anggaran, 0 tabungan, dan 0 tagihan, siap digunakan untuk pencatatan keuangan asli.
+1. **Pendaftaran Akun Baru (User Real)**:
+   - Pengguna dapat membuat akun pribadi secara instan menggunakan alamat Gmail atau email mana pun.
+   - **Data Real Bersih**: Akun baru dimulai dengan data saldo `Rp0`, 0 transaksi, 0 anggaran, 0 tabungan, dan 0 tagihan, siap digunakan untuk pencatatan keuangan asli Anda.
+   - Data tersimpan secara terisolasi dan privat per akun.
 
 ---
 

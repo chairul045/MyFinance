@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useFinance } from '@/context/FinanceContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { TransactionsView } from '@/components/transactions/TransactionsView';
@@ -47,24 +48,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex">
-      {/* Sidebar */}
-      <Sidebar
-        isOpenMobile={isMobileSidebarOpen}
-        setIsOpenMobile={setIsMobileSidebarOpen}
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all duration-300">
-        <Navbar
-          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
-          onOpenAddTxModal={() => setIsAddTxModalOpen(true)}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      <div className="flex-1 flex">
+        {/* Desktop & Drawer Sidebar */}
+        <Sidebar
+          isOpenMobile={isMobileSidebarOpen}
+          setIsOpenMobile={setIsMobileSidebarOpen}
         />
 
-        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
-          {renderContent()}
-        </main>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all duration-300">
+          <Navbar
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+            onOpenAddTxModal={() => setIsAddTxModalOpen(true)}
+          />
+
+          <main className="flex-1 p-3 sm:p-5 md:p-8 pb-24 lg:pb-12 max-w-7xl w-full mx-auto">
+            {renderContent()}
+          </main>
+        </div>
       </div>
+
+      {/* Mobile Native Bottom Navigation Bar */}
+      <MobileBottomNav onOpenAddTx={() => setIsAddTxModalOpen(true)} />
 
       {/* Global Add Transaction Modal */}
       <AddTransactionModal

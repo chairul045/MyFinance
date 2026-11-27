@@ -144,175 +144,153 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
         </div>
       )}
 
-      {/* Admin Quick Switch Bar */}
-      {!isDataEmpty && user.role === 'admin' && (
-        <div className="p-3 px-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
-            <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>Mode Admin: <strong>{user.email}</strong></span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (confirm('Kosongkan semua data kembali ke 0 (Real Kosong)?')) {
-                  clearAllData();
-                }
-              }}
-              className="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1"
-            >
-              <RotateCcw className="w-3 h-3" /> Kosongkan Data Real (0)
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Live Arithmetic Cashflow Indicator (Gaji Berkurang Otomatis Saat Ada Pengeluaran) */}
-      <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-3.5">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-              Kalkulasi Otomatis Sisa Uang Anda (Live Update)
+              Kalkulasi Sisa Uang Real-Time
             </h4>
           </div>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[10px] sm:text-[11px] text-slate-400">
             Sisa uang langsung berkurang saat ada pengeluaran
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 items-center">
           {/* Pemasukan */}
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+          <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
             <div className="flex items-center justify-between text-xs text-emerald-400 font-semibold mb-1">
-              <span>Total Pemasukan Kas</span>
+              <span>Total Pemasukan</span>
               <TrendingUp className="w-4 h-4" />
             </div>
-            <p className="text-xl font-black text-emerald-300">
+            <p className="text-base sm:text-xl font-black text-emerald-300">
               +{formatRupiah(allIncome)}
             </p>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-slate-400 mt-0.5 truncate">
               Bulan aktif: {formatRupiah(totalIncome)}
             </p>
           </div>
 
           {/* Pengeluaran */}
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+          <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-rose-500/10 border border-rose-500/20">
             <div className="flex items-center justify-between text-xs text-rose-400 font-semibold mb-1">
-              <span>Total Pengeluaran Kas</span>
+              <span>Total Pengeluaran</span>
               <TrendingDown className="w-4 h-4" />
             </div>
-            <p className="text-xl font-black text-rose-400">
+            <p className="text-base sm:text-xl font-black text-rose-400">
               -{formatRupiah(allExpense)}
             </p>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-slate-400 mt-0.5 truncate">
               Bulan aktif: {formatRupiah(totalExpense)}
             </p>
           </div>
 
           {/* Sisa Kas */}
-          <div className={`p-4 rounded-2xl border ${
+          <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border ${
             currentBalance >= 0 
               ? 'bg-cyan-500/10 border-cyan-500/30' 
               : 'bg-rose-500/20 border-rose-500/50'
           }`}>
             <div className="flex items-center justify-between text-xs font-semibold mb-1">
               <span className={currentBalance >= 0 ? 'text-cyan-300' : 'text-rose-300'}>
-                Sisa Uang Anda (Tersedia)
+                Sisa Uang Anda (Dompet)
               </span>
               <Wallet className="w-4 h-4 text-cyan-400" />
             </div>
-            <p className={`text-xl font-black ${
+            <p className={`text-base sm:text-xl font-black ${
               currentBalance >= 0 ? 'text-white' : 'text-rose-400'
             }`}>
               ={formatRupiah(currentBalance)}
             </p>
-            <p className="text-[10px] text-slate-400 mt-1">
-              {currentBalance >= 0 ? 'Saldo kas aman & siap dialokasikan' : 'Peringatan: Saldo defisit!'}
+            <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+              {currentBalance >= 0 ? 'Saldo kas aman & siap pakai' : 'Peringatan: Saldo defisit!'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 4 Stat Cards (Responsive 2x2 on Mobile, 4 cols on Desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Saldo Kas Saat Ini */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Sisa Saldo Kas
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider truncate">
+              Sisa Kas
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Wallet className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <Wallet className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className={`text-2xl font-black tracking-tight ${
+          <div className="mt-2 sm:mt-3">
+            <h3 className={`text-sm sm:text-2xl font-black tracking-tight truncate ${
               currentBalance >= 0 ? 'text-white' : 'text-rose-400'
             }`}>
               {formatRupiah(currentBalance)}
             </h3>
-            <p className="text-[11px] text-emerald-400/90 mt-1 flex items-center gap-1 font-medium">
-              <span>● Otomatis update real-time</span>
+            <p className="text-[9px] sm:text-[11px] text-emerald-400/90 mt-0.5 truncate font-medium">
+              Live Real-Time
             </p>
           </div>
         </div>
 
         {/* Total Pemasukan Bulan Berjalan */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Pemasukan ({getMonthNameIndo(currentMonth)})
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider truncate">
+              Pemasukan
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-black text-emerald-400 tracking-tight">
+          <div className="mt-2 sm:mt-3">
+            <h3 className="text-sm sm:text-2xl font-black text-emerald-400 tracking-tight truncate">
               {formatRupiah(totalIncome)}
             </h3>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <span>Akumulatif: {formatRupiah(allIncome)}</span>
+            <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 truncate">
+              Total: {formatRupiah(allIncome)}
             </p>
           </div>
         </div>
 
         {/* Total Pengeluaran Bulan Berjalan */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Pengeluaran ({getMonthNameIndo(currentMonth)})
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider truncate">
+              Pengeluaran
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
-              <TrendingDown className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+              <TrendingDown className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-black text-rose-400 tracking-tight">
+          <div className="mt-2 sm:mt-3">
+            <h3 className="text-sm sm:text-2xl font-black text-rose-400 tracking-tight truncate">
               {formatRupiah(totalExpense)}
             </h3>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <span>Akumulatif: {formatRupiah(allExpense)}</span>
+            <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 truncate">
+              Total: {formatRupiah(allExpense)}
             </p>
           </div>
         </div>
 
         {/* Total Tabungan Terkumpul */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Total Tabungan
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider truncate">
+              Tabungan
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
-              <PiggyBank className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+              <PiggyBank className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-black text-teal-400 tracking-tight">
+          <div className="mt-2 sm:mt-3">
+            <h3 className="text-sm sm:text-2xl font-black text-teal-400 tracking-tight truncate">
               {formatRupiah(totalSavings)}
             </h3>
-            <p className="text-xs text-teal-500/80 mt-1 flex items-center gap-1">
-              <span>Semua target menabung aktif</span>
+            <p className="text-[9px] sm:text-xs text-teal-500/80 mt-0.5 truncate">
+              Target aktif
             </p>
           </div>
         </div>

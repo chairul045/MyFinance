@@ -9,7 +9,6 @@ import {
   PiggyBank,
   Receipt,
   FileBarChart,
-  ShieldCheck,
   CheckCircle2,
   Sparkles,
   LogIn,
@@ -19,7 +18,7 @@ import {
   Mail,
   User,
 } from 'lucide-react';
-import { useFinance, DEFAULT_ADMIN } from '@/context/FinanceContext';
+import { useFinance } from '@/context/FinanceContext';
 
 export const LandingPage: React.FC = () => {
   const { login, register } = useFinance();
@@ -44,7 +43,7 @@ export const LandingPage: React.FC = () => {
     setAuthError(null);
     const res = login(loginEmail, loginPassword);
     if (!res.success) {
-      setAuthError(res.error || 'Login gagal.');
+      setAuthError(res.error || 'Email atau kata sandi tidak cocok. Silakan coba lagi.');
     } else {
       setIsAuthModalOpen(false);
     }
@@ -72,37 +71,31 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  const handleFillAdmin = () => {
-    setLoginEmail(DEFAULT_ADMIN.email);
-    setLoginPassword(DEFAULT_ADMIN.password);
-    setAuthError(null);
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500/30">
       {/* Navbar Landing */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold">
               <WalletCards className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-xl text-white tracking-tight">MyFinance</span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="font-extrabold text-lg sm:text-xl text-white tracking-tight">MyFinance</span>
+              <span className="hidden md:inline-block ml-2 text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 Personal Management
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => {
                 setAuthMode('login');
                 setAuthError(null);
                 setIsAuthModalOpen(true);
               }}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-colors"
+              className="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-colors"
             >
               Masuk
             </button>
@@ -112,9 +105,9 @@ export const LandingPage: React.FC = () => {
                 setAuthError(null);
                 setIsAuthModalOpen(true);
               }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all hover:scale-105"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              <span>Daftar Akun Baru</span>
+              <span>Daftar Akun</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -122,142 +115,142 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-20 px-6 overflow-hidden">
+      <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-6 overflow-hidden">
         {/* Glow Gradients */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-emerald-500/15 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[600px] h-[250px] sm:h-[350px] bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[200px] sm:w-[300px] h-[200px] sm:h-[300px] bg-teal-500/10 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-6 animate-pulse">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] sm:text-xs font-semibold mb-5 animate-pulse">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Desain 21st Modern Financial Architecture</span>
+            <span>Modern Personal Finance App</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
             Atur Uang Lebih Cerdas, <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
               Capai Kebebasan Finansial
             </span>
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Aplikasi manajemen keuangan pribadi yang membantu Anda mengontrol pemasukan, membatasi pengeluaran bulanan, mengumpulkan tabungan, dan mengingat tagihan tanpa ribet.
+          <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed px-2">
+            Aplikasi manajemen keuangan pribadi yang membantu Anda mengontrol pemasukan gaji, membatasi pengeluaran, mengumpulkan target tabungan, dan mengingat tagihan tanpa ribet.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto sm:max-w-none">
             <button
               onClick={() => {
                 setAuthMode('register');
                 setAuthError(null);
                 setIsAuthModalOpen(true);
               }}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              <span>Buat Akun Baru (Data Real Kosong)</span>
+              <span>Mulai Buat Akun Baru</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => {
                 setAuthMode('login');
-                handleFillAdmin();
+                setAuthError(null);
                 setIsAuthModalOpen(true);
               }}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-semibold text-amber-300 hover:text-white bg-slate-900 border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-lg shadow-amber-500/10"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all active:scale-95"
             >
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
-              <span>Masuk Sebagai Admin</span>
+              <LogIn className="w-4 h-4" />
+              <span>Masuk ke Akun Saya</span>
             </button>
           </div>
 
           {/* Quick Metrics Banner */}
-          <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
-            <div className="p-3">
-              <p className="text-2xl font-black text-white">100%</p>
-              <p className="text-xs text-slate-400 mt-0.5">Data Real Bersih</p>
+          <div className="mt-12 sm:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 p-3 sm:p-4 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
+            <div className="p-2 sm:p-3">
+              <p className="text-xl sm:text-2xl font-black text-white">100%</p>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Data Real Bersih</p>
             </div>
-            <div className="p-3">
-              <p className="text-2xl font-black text-emerald-400">Multi-Akun</p>
-              <p className="text-xs text-slate-400 mt-0.5">Tersinkronisasi per Gmail</p>
+            <div className="p-2 sm:p-3">
+              <p className="text-xl sm:text-2xl font-black text-emerald-400">Live Auto</p>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Sisa Kas Real-Time</p>
             </div>
-            <div className="p-3">
-              <p className="text-2xl font-black text-teal-400">PDF & Excel</p>
-              <p className="text-xs text-slate-400 mt-0.5">Export Laporan Cepat</p>
+            <div className="p-2 sm:p-3">
+              <p className="text-xl sm:text-2xl font-black text-teal-400">PDF & Excel</p>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Export Laporan Cepat</p>
             </div>
-            <div className="p-3">
-              <p className="text-2xl font-black text-cyan-400">Admin Ready</p>
-              <p className="text-xs text-slate-400 mt-0.5">Akses Khusus Pengelola</p>
+            <div className="p-2 sm:p-3">
+              <p className="text-xl sm:text-2xl font-black text-cyan-400">Mobile Ready</p>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Responsif di HP</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Feature Grid */}
-      <section className="py-16 px-6 max-w-7xl mx-auto w-full">
-        <div className="text-center mb-12">
+      <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-7xl mx-auto w-full">
+        <div className="text-center mb-10 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
             Semua Fitur Esensial Dalam Satu Aplikasi
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-2">
-            Dirancang khusus untuk gaya hidup modern dan kebutuhan finansial keluarga & profesional
+            Dirancang khusus untuk gaya hidup modern dan kenyamanan akses di smartphone maupun laptop
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-6 h-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">1. Dashboard Arus Kas</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">1. Dashboard Arus Kas</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Pantau total pemasukan, pengeluaran, saldo tersedia, total tabungan, dan grafik keuangan bulanan secara seketika.
+              Pantau total pemasukan, pengeluaran, saldo kas tersedia, total tabungan, dan grafik keuangan bulanan secara seketika.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-5 group-hover:scale-110 transition-transform">
-              <WalletCards className="w-6 h-6" />
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+              <WalletCards className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">2. Pencatatan Transaksi</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">2. Pencatatan Transaksi</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Catat pemasukan dari gaji, bisnis, dan pengeluaran harian lengkap dengan kategori, metode bayar, dan filter pencarian.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5 group-hover:scale-110 transition-transform">
-              <PieChart className="w-6 h-6" />
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+              <PieChart className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">3. Anggaran Bulanan</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">3. Anggaran Bulanan</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Tentukan batas pengeluaran makan, transportasi, hiburan, dan dapatkan peringatan dini sebelum anggaran habis atau jebol.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 group-hover:scale-110 transition-transform">
-              <PiggyBank className="w-6 h-6" />
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+              <PiggyBank className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">4. Target Tabungan</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">4. Target Tabungan</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Tentukan target impian finansial, catat uang yang disetor, dan pantau persentase serta sisa dana menuju tujuan Anda.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 group-hover:scale-110 transition-transform">
-              <Receipt className="w-6 h-6" />
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+              <Receipt className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">5. Pengingat Tagihan</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">5. Pengingat Tagihan</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Catat tagihan listrik PLN, internet, cicilan, dan tenggat waktu jatuh tempo dengan notifikasi status belum / sudah lunas.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-5 group-hover:scale-110 transition-transform">
-              <FileBarChart className="w-6 h-6" />
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+              <FileBarChart className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">6. Laporan & Export</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">6. Laporan & Export</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Evaluasi keuangan komparatif antarbulan, rasio tabungan, dan ekspor instan format file PDF serta Excel (.xlsx).
             </p>
@@ -266,25 +259,25 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto py-8 px-6 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500">
-        <p>© 2026 MyFinance – Personal Finance Management System. Dilengkapi standar estetika 21st UI.</p>
+      <footer className="mt-auto py-6 sm:py-8 px-4 sm:px-6 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500">
+        <p>© 2026 MyFinance – Personal Finance Management System.</p>
       </footer>
 
       {/* Login / Register Modal */}
       {isAuthModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md max-h-[92vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-5 sm:p-8">
             <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto mb-3">
-                {authMode === 'login' ? <LogIn className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto mb-3">
+                {authMode === 'login' ? <LogIn className="w-5 h-5 sm:w-6 sm:h-6" /> : <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />}
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-lg sm:text-xl font-bold text-white">
                 {authMode === 'login' ? 'Masuk ke MyFinance' : 'Daftar Akun Baru'}
               </h3>
               <p className="text-xs text-slate-400 mt-1">
                 {authMode === 'login'
-                  ? 'Gunakan Gmail atau akun terdaftar Anda untuk masuk'
-                  : 'Akun baru dimulai dengan data real bersih / kosong'}
+                  ? 'Gunakan Email atau Gmail Anda untuk masuk'
+                  : 'Akun baru dimulai dengan data real kosong (Rp0)'}
               </p>
             </div>
 
@@ -332,19 +325,9 @@ export const LandingPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Quick Admin Auto-fill button */}
-                <button
-                  type="button"
-                  onClick={handleFillAdmin}
-                  className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Isi Otomatis Akun Admin (Chairulanwarr003@gmail.com)</span>
-                </button>
-
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all"
+                  className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
                 >
                   Masuk Sekarang
                 </button>
@@ -358,7 +341,7 @@ export const LandingPage: React.FC = () => {
                     }}
                     className="text-xs text-emerald-400 hover:underline"
                   >
-                    Belum punya akun? Buat akun baru di sini
+                    Belum punya akun? Buat akun di sini
                   </button>
                 </div>
               </form>
@@ -428,12 +411,12 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-[11px] text-slate-400">
-                  ✨ Akun baru akan dibuat dengan <strong>data finansial bersih (0 transaksi, 0 saldo)</strong> sehingga Anda dapat menginput keuangan asli Anda.
+                  ✨ Akun baru dibuat dengan <strong>data finansial bersih (Rp0)</strong> sehingga Anda dapat langsung mencatat keuangan pribadi Anda.
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all"
+                  className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
                 >
                   Daftar Akun Baru
                 </button>
