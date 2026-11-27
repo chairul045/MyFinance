@@ -6,7 +6,6 @@ import {
   ArrowLeftRight,
   PieChart,
   PiggyBank,
-  Receipt,
   Plus,
 } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
@@ -51,13 +50,22 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAddTx })
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                "flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px]",
-                isActive ? "text-emerald-400" : "text-slate-400 hover:text-slate-200"
+                "relative flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all min-w-[58px] active:scale-95",
+                isActive
+                  ? "text-emerald-400 bg-emerald-500/10"
+                  : "text-slate-400 hover:text-slate-200"
               )}
             >
+              {isActive && (
+                <span className="absolute -top-1.5 w-6 h-0.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+              )}
               <Icon className={cn("w-5 h-5 transition-transform", isActive && "scale-110")} />
-              <span className="text-[10px] font-medium mt-1 truncate">{item.label}</span>
+              <span className={cn("text-[10px] mt-1 truncate", isActive ? "font-semibold" : "font-medium")}>
+                {item.label}
+              </span>
             </button>
           );
         })}

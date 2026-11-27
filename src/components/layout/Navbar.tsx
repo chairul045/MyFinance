@@ -77,35 +77,35 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, [transactions, budgets, currentMonth]);
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 md:px-8 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 sm:h-20 px-3 sm:px-4 md:px-8 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80">
       {/* Left Title & Mobile Menu Button */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onOpenMobileSidebar}
-          className="p-2.5 rounded-xl bg-slate-800/60 text-slate-300 hover:text-white hover:bg-slate-800 lg:hidden"
+          className="p-2 sm:p-2.5 rounded-xl bg-slate-800/60 text-slate-300 hover:text-white hover:bg-slate-800 lg:hidden shrink-0"
           aria-label="Buka Menu"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-xl md:text-2xl font-bold text-white tracking-tight truncate">
             {activeNavItem ? activeNavItem.name : 'Dashboard'}
           </h1>
-          <p className="text-xs text-slate-400 hidden sm:block">
+          <p className="text-xs text-slate-400 hidden md:block">
             Pantau dan optimalkan kesehatan finansial Anda
           </p>
         </div>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Dynamic Month Selector */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300">
-          <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300">
+          <Calendar className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <select
             value={currentMonth}
             onChange={e => setCurrentMonth(e.target.value)}
-            className="bg-transparent border-none outline-none font-medium text-slate-200 cursor-pointer pr-1"
+            className="bg-transparent border-none outline-none font-medium text-slate-200 cursor-pointer text-xs max-w-[90px] sm:max-w-none"
           >
             {availableMonths.map(m => (
               <option key={m} value={m} className="bg-slate-900 text-white">
@@ -115,22 +115,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           </select>
         </div>
 
-        {/* Quick Add Button */}
+        {/* Quick Add Button – desktop only (mobile uses bottom nav) */}
         <button
           onClick={onOpenAddTxModal}
           className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium text-xs md:text-sm shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Transaksi</span>
-        </button>
-
-        {/* Mobile plus button */}
-        <button
-          onClick={onOpenAddTxModal}
-          className="sm:hidden p-2 rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
-          title="Tambah Transaksi"
-        >
-          <Plus className="w-5 h-5" />
         </button>
 
         {/* Notification Bell Dropdown */}

@@ -96,10 +96,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
   const isDataEmpty = transactions.length === 0 && budgets.length === 0;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 sm:space-y-6 pb-4">
       {/* Welcome Banner for Real Clean Account */}
       {isDataEmpty && (
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
               <Sparkles className="w-5 h-5" />
@@ -121,7 +121,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
             <button
               onClick={onOpenAddTx}
               className="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5"
@@ -298,16 +298,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
 
       {/* Alert Banner if any budget exceeds 80% */}
       {budgetAlerts.length > 0 && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-start sm:items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
             <p className="text-xs sm:text-sm text-amber-200">
               <strong>Peringatan Anggaran:</strong> Ada {budgetAlerts.length} kategori yang telah mencapai lebih dari 75% batas pengeluaran bulan ini!
             </p>
           </div>
           <button
             onClick={() => setActiveTab('budgets')}
-            className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 shrink-0 ml-2"
+            className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 shrink-0 self-end sm:self-auto"
           >
             Lihat Detail <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -315,15 +315,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
       )}
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Bar Chart */}
-        <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
-          <div className="flex items-center justify-between mb-6">
+        <div className="lg:col-span-2 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h4 className="text-base font-bold text-white">Ringkasan Arus Kas ({getMonthNameIndo(currentMonth)})</h4>
-              <p className="text-xs text-slate-400">Perbandingan pemasukan vs pengeluaran bulan berjalan</p>
+              <h4 className="text-sm sm:text-base font-bold text-white">Ringkasan Arus Kas ({getMonthNameIndo(currentMonth)})</h4>
+              <p className="text-[11px] sm:text-xs text-slate-400">Perbandingan pemasukan vs pengeluaran bulan berjalan</p>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               Live Real-Time
             </span>
           </div>
@@ -377,10 +377,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
         </div>
 
         {/* Expense Category Distribution */}
-        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between">
+        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between">
           <div>
-            <h4 className="text-base font-bold text-white">Distribusi Pengeluaran</h4>
-            <p className="text-xs text-slate-400">Proporsi kategori belanja bulan ini</p>
+            <h4 className="text-sm sm:text-base font-bold text-white">Distribusi Pengeluaran</h4>
+            <p className="text-[11px] sm:text-xs text-slate-400">Proporsi kategori belanja bulan ini</p>
           </div>
 
           <div className="h-56 w-full flex items-center justify-center my-2">
@@ -441,13 +441,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
       </div>
 
       {/* Two Column Section: Recent Transactions & Upcoming Bills */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Recent Transactions (2 cols) */}
-        <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+          <div className="flex items-center justify-between gap-2 mb-4">
             <div>
-              <h4 className="text-base font-bold text-white">Transaksi Terbaru</h4>
-              <p className="text-xs text-slate-400">Mutasi keuangan terbaru yang tercatat di sistem</p>
+              <h4 className="text-sm sm:text-base font-bold text-white">Transaksi Terbaru</h4>
+              <p className="text-[11px] sm:text-xs text-slate-400">Mutasi keuangan terbaru yang tercatat di sistem</p>
             </div>
             {recentTransactions.length > 0 && (
               <button
@@ -515,12 +515,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
         </div>
 
         {/* Upcoming Bills (1 col) */}
-        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between">
+        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between gap-2 mb-4">
               <div>
-                <h4 className="text-base font-bold text-white">Tagihan Menanti</h4>
-                <p className="text-xs text-slate-400">Pengingat jatuh tempo tagihan</p>
+                <h4 className="text-sm sm:text-base font-bold text-white">Tagihan Menanti</h4>
+                <p className="text-[11px] sm:text-xs text-slate-400">Pengingat jatuh tempo tagihan</p>
               </div>
               <button
                 onClick={() => setActiveTab('bills')}
