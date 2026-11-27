@@ -170,7 +170,30 @@ export const BudgetView: React.FC = () => {
 
       {/* Grid of Budgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {monthBudgets.map(budget => {
+        {monthBudgets.length === 0 ? (
+          <div className="col-span-full p-12 text-center rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+            <PieIcon className="w-12 h-12 text-emerald-400 mx-auto mb-3 opacity-60" />
+            <h3 className="text-base font-bold text-white">Belum Ada Anggaran Bulanan</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+              Tentukan batas pengeluaran per kategori atau terapkan formula rekomendasi Rp5.000.000 untuk mengontrol pengeluaran Anda.
+            </p>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <button
+                onClick={handleOpenAdd}
+                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs shadow-md shadow-emerald-500/20 transition-all hover:scale-105"
+              >
+                + Tambah Anggaran Pertama
+              </button>
+              <button
+                onClick={applyPresetTemplate}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-all hover:scale-105"
+              >
+                Gunakan Formula Rekomendasi
+              </button>
+            </div>
+          </div>
+        ) : (
+          monthBudgets.map(budget => {
           const spent = categorySpending[budget.category] || 0;
           const remaining = budget.allocatedAmount - spent;
           const percent = budget.allocatedAmount > 0 ? (spent / budget.allocatedAmount) * 100 : 0;
@@ -302,7 +325,7 @@ export const BudgetView: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
 
       {/* Add / Edit Budget Modal */}

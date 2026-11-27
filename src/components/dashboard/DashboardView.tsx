@@ -13,6 +13,9 @@ import {
   Clock,
   Sparkles,
   CalendarDays,
+  Plus,
+  RotateCcw,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -38,6 +41,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => {
   const {
+    user,
     transactions,
     budgets,
     bills,
@@ -49,6 +53,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
     budgetAlerts,
     toggleBillPaid,
     setActiveTab,
+    loadDemoData,
+    clearAllData,
   } = useFinance();
 
   // Filter current month
@@ -82,9 +88,79 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
 
   // Upcoming unpaid bills
   const upcomingBills = bills.filter(b => !b.isPaid).slice(0, 4);
+  const isDataEmpty = transactions.length === 0 && budgets.length === 0;
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Welcome Banner for Real Clean Account */}
+      {isDataEmpty && (
+        <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-white">
+                  Selamat Datang, {user.name || 'Pengguna Baru'}!
+                </h3>
+                {user.role === 'admin' && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" /> ADMIN
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                Akun Anda telah aktif dengan <strong>data finansial bersih / real kosong</strong>. Silakan mulai mencatat transaksi pertama Anda atau atur batas anggaran bulanan.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={onOpenAddTx}
+              className="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Transaksi</span>
+            </button>
+            <button
+              onClick={() => {
+                if (confirm('Muat data simulasi contoh (Rp5.000.000)?')) {
+                  loadDemoData();
+                }
+              }}
+              className="px-3 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition-all"
+              title="Isi dengan data contoh simulasi"
+            >
+              Muat Data Demo
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Quick Switch Bar if data is present */}
+      {!isDataEmpty && user.role === 'admin' && (
+        <div className="p-3 px-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <span>Mode Admin: <strong>{user.email}</strong></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (confirm('Kosongkan semua data kembali ke 0 (Real Kosong)?')) {
+                  clearAllData();
+                }
+              }}
+              className="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1"
+            >
+              <RotateCcw className="w-3 h-3" /> Kosongkan Data Real
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Saldo Saat Ini */}
@@ -284,23 +360,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-xs text-slate-500 text-center">Belum ada data pengeluaran</p>
+              <div className="text-center py-6 text-slate-500 text-xs">
+                <PieChart className="w-8 h-8 text-slate-700 mx-auto mb-2 opacity-50" />
+                <p>Belum ada data pengeluaran</p>
+              </div>
             )}
           </div>
 
           <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-            {pieData.slice(0, 4).map((item, idx) => (
-              <div key={item.name} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
-                  />
-                  <span className="text-slate-300 truncate max-w-[120px]">{item.name}</span>
+            {pieData.length > 0 ? (
+              pieData.slice(0, 4).map((item, idx) => (
+                <div key={item.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
+                    />
+                    <span className="text-slate-300 truncate max-w-[120px]">{item.name}</span>
+                  </div>
+                  <span className="font-semibold text-white">{formatRupiah(item.value)}</span>
                 </div>
-                <span className="font-semibold text-white">{formatRupiah(item.value)}</span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-[11px] text-slate-500 text-center">Data akan otomatis muncul setelah mencatat transaksi</p>
+            )}
           </div>
         </div>
       </div>
@@ -314,54 +397,68 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
               <h4 className="text-base font-bold text-white">Transaksi Terbaru</h4>
               <p className="text-xs text-slate-400">Catatan mutasi keuangan terbaru Anda</p>
             </div>
-            <button
-              onClick={() => setActiveTab('transactions')}
-              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
-            >
-              Semua Transaksi <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            {recentTransactions.length > 0 && (
+              <button
+                onClick={() => setActiveTab('transactions')}
+                className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+              >
+                Semua Transaksi <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           <div className="divide-y divide-slate-800/80">
-            {recentTransactions.map(tx => (
-              <div key={tx.id} className="py-3.5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                      tx.type === 'income'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                    }`}
-                  >
-                    {tx.type === 'income' ? (
-                      <TrendingUp className="w-4 h-4" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4" />
-                    )}
+            {recentTransactions.length > 0 ? (
+              recentTransactions.map(tx => (
+                <div key={tx.id} className="py-3.5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        tx.type === 'income'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                      }`}
+                    >
+                      {tx.type === 'income' ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white truncate">
+                        {tx.description}
+                      </p>
+                      <p className="text-[11px] text-slate-400 flex items-center gap-2">
+                        <span>{tx.category}</span>
+                        <span>•</span>
+                        <span>{formatDateIndo(tx.date)}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-semibold text-white truncate">
-                      {tx.description}
+                  <div className="text-right shrink-0">
+                    <p
+                      className={`text-xs sm:text-sm font-bold ${
+                        tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                    >
+                      {tx.type === 'income' ? '+' : '-'} {formatRupiah(tx.amount)}
                     </p>
-                    <p className="text-[11px] text-slate-400 flex items-center gap-2">
-                      <span>{tx.category}</span>
-                      <span>•</span>
-                      <span>{formatDateIndo(tx.date)}</span>
-                    </p>
+                    <p className="text-[10px] text-slate-500">{tx.paymentMethod || 'Metode Tunai'}</p>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <p
-                    className={`text-xs sm:text-sm font-bold ${
-                      tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                  >
-                    {tx.type === 'income' ? '+' : '-'} {formatRupiah(tx.amount)}
-                  </p>
-                  <p className="text-[10px] text-slate-500">{tx.paymentMethod || 'Metode Tunai'}</p>
-                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-slate-500 text-xs">
+                <p className="text-slate-400 font-medium">Belum ada transaksi di akun ini.</p>
+                <button
+                  onClick={onOpenAddTx}
+                  className="mt-3 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs shadow-md shadow-emerald-500/20 transition-all"
+                >
+                  + Tambah Transaksi Pertama
+                </button>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -416,7 +513,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
               ) : (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                  <p className="text-xs text-slate-400">Hebat! Semua tagihan telah lunas.</p>
+                  <p className="text-xs text-slate-400">Tidak ada tagihan yang belum dibayar.</p>
                 </div>
               )}
             </div>

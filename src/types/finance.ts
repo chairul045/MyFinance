@@ -46,6 +46,15 @@ export interface UserProfile {
   email: string;
   monthlyIncomeTarget: number;
   currency: string;
+  role?: 'admin' | 'user';
+}
+
+export interface UserAccount {
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'user';
+  createdAt: string;
 }
 
 export interface CategoryOption {

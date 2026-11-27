@@ -12,6 +12,8 @@ import {
   Moon,
   Sun,
   Code2,
+  Sparkles,
+  Trash2,
 } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { formatRupiah } from '@/lib/utils';
@@ -21,7 +23,8 @@ export const SettingsView: React.FC = () => {
     user,
     theme,
     setTheme,
-    resetToDefaultData,
+    loadDemoData,
+    clearAllData,
     exportBackup,
     importBackup,
   } = useFinance();
@@ -36,7 +39,7 @@ export const SettingsView: React.FC = () => {
     e.preventDefault();
     user.name = name;
     user.email = email;
-    user.monthlyIncomeTarget = parseFloat(targetIncome) || 5000000;
+    user.monthlyIncomeTarget = parseFloat(targetIncome) || 0;
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
@@ -63,11 +66,24 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
-        <h2 className="text-xl font-bold text-white">Pengaturan Aplikasi & Profil</h2>
-        <p className="text-xs text-slate-400 mt-1">
-          Kelola preferensi akun, backup data, dan integrasi database Supabase.
-        </p>
+      <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-white">Pengaturan Akun & Preferensi</h2>
+            {user.role === 'admin' ? (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> AKUN ADMIN
+              </span>
+            ) : (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">
+                AKUN REAL
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Kelola profil personal, backup data, dan manipulasi data keuangan akun Anda.
+          </p>
+        </div>
       </div>
 
       {/* Profile Form */}
@@ -77,8 +93,8 @@ export const SettingsView: React.FC = () => {
             <User className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Informasi Pengguna</h3>
-            <p className="text-xs text-slate-400">Data profil personal Anda</p>
+            <h3 className="text-base font-bold text-white">Informasi Akun</h3>
+            <p className="text-xs text-slate-400">Data profil personal yang sedang aktif</p>
           </div>
         </div>
 
@@ -98,14 +114,13 @@ export const SettingsView: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Email
+                Email / Gmail
               </label>
               <input
                 type="email"
+                disabled
                 value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/60 text-sm text-slate-400 cursor-not-allowed"
               />
             </div>
           </div>
@@ -125,7 +140,7 @@ export const SettingsView: React.FC = () => {
           <div className="flex items-center justify-between pt-2">
             {isSaved && (
               <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
-                <CheckCircle className="w-4 h-4" /> Tersimpan dengan sukses!
+                <CheckCircle className="w-4 h-4" /> Profil berhasil diperbarui!
               </span>
             )}
             <button
@@ -136,6 +151,54 @@ export const SettingsView: React.FC = () => {
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Data Management: Real Clean vs Demo Simulation */}
+      <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        <div>
+          <h3 className="text-base font-bold text-white">Manipulasi Data Akun</h3>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Pilih untuk memulai dari awal (real data bersih) atau memuat data contoh untuk presentasi/simulasi.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <button
+            onClick={() => {
+              if (confirm('Kosongkan semua data transaksi, anggaran, tabungan, dan tagihan di akun ini menjadi 0 (Real Kosong)?')) {
+                clearAllData();
+                alert('Semua data berhasil dikosongkan. Akun Anda sekarang bersih 100%.');
+              }
+            }}
+            className="p-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/30 text-left transition-all group"
+          >
+            <div className="flex items-center gap-2 text-rose-400 font-bold text-xs mb-1">
+              <Trash2 className="w-4 h-4" />
+              <span>Kosongkan Semua Data (Real Data 0)</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Menghapus semua mutasi simulasi sehingga Anda dapat mencatat keuangan asli dari awal.
+            </p>
+          </button>
+
+          <button
+            onClick={() => {
+              if (confirm('Muat data simulasi contoh (Rp5.000.000 alokasi ideal)?')) {
+                loadDemoData();
+                alert('Data demo berhasil dimuat!');
+              }
+            }}
+            className="p-4 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 text-left transition-all group"
+          >
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs mb-1">
+              <Sparkles className="w-4 h-4" />
+              <span>Muat Data Contoh Simulasi (Demo)</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Mengisi akun dengan contoh data pemasukan Rp5 Juta dan alokasi anggaran siap presentasi.
+            </p>
+          </button>
+        </div>
       </div>
 
       {/* Theme Preference */}
@@ -198,19 +261,6 @@ export const SettingsView: React.FC = () => {
               className="hidden"
             />
           </label>
-
-          <button
-            onClick={() => {
-              if (confirm('Yakin ingin mereset seluruh data kembali ke data contoh bawaan?')) {
-                resetToDefaultData();
-                alert('Data berhasil direset.');
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-semibold border border-rose-500/30 transition-all ml-auto"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Reset ke Contoh Bawaan</span>
-          </button>
         </div>
       </div>
 
@@ -240,10 +290,10 @@ export const SettingsView: React.FC = () => {
 
         <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 space-y-2">
           <p>
-            <strong className="text-emerald-400">Mode Saat Ini:</strong> Penyimpanan LocalStorage Cerdas (Otomatis tersimpan di browser tanpa perlu konfigurasi server).
+            <strong className="text-emerald-400">Mode Saat Ini:</strong> Penyimpanan Multi-Akun LocalStorage (Data per Gmail tersimpan aman dan terpisah di browser).
           </p>
           <p>
-            Untuk beralih ke Supabase Cloud, cukup isi file <code className="text-teal-300">.env.local</code> dengan:
+            Untuk menghubungkan ke server cloud Supabase, konfigurasikan file <code className="text-teal-300">.env.local</code> dengan:
           </p>
           <pre className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-mono overflow-x-auto">
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -254,11 +304,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
         {showSqlSchema && (
           <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 overflow-x-auto max-h-64">
             <pre>
-{`-- Tabel Transaksi
+{`-- Tabel Pengguna
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  role VARCHAR(20) DEFAULT 'user',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Tabel Transaksi
 CREATE TABLE transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id),
-  type VARCHAR(10) NOT NULL, -- 'income' / 'expense'
+  user_email VARCHAR(255) NOT NULL,
+  type VARCHAR(10) NOT NULL,
   amount NUMERIC(15,2) NOT NULL,
   category VARCHAR(50) NOT NULL,
   date DATE NOT NULL,
@@ -270,33 +329,10 @@ CREATE TABLE transactions (
 -- Tabel Anggaran
 CREATE TABLE budgets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id),
+  user_email VARCHAR(255) NOT NULL,
   category VARCHAR(50) NOT NULL,
   allocated_amount NUMERIC(15,2) NOT NULL,
-  month VARCHAR(7) NOT NULL -- 'YYYY-MM'
-);
-
--- Tabel Tabungan
-CREATE TABLE savings_goals (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id),
-  name VARCHAR(100) NOT NULL,
-  target_amount NUMERIC(15,2) NOT NULL,
-  current_amount NUMERIC(15,2) DEFAULT 0,
-  target_date DATE NOT NULL,
-  category VARCHAR(50)
-);
-
--- Tabel Tagihan
-CREATE TABLE bills (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id),
-  name VARCHAR(100) NOT NULL,
-  amount NUMERIC(15,2) NOT NULL,
-  due_date DATE NOT NULL,
-  category VARCHAR(50),
-  is_paid BOOLEAN DEFAULT false,
-  recurring VARCHAR(20) DEFAULT 'monthly'
+  month VARCHAR(7) NOT NULL
 );`}
             </pre>
           </div>

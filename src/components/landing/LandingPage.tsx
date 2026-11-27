@@ -12,22 +12,70 @@ import {
   ShieldCheck,
   CheckCircle2,
   Sparkles,
-  ChevronRight,
   LogIn,
-  Layers,
+  UserPlus,
+  AlertCircle,
+  KeyRound,
+  Mail,
+  User,
 } from 'lucide-react';
-import { useFinance } from '@/context/FinanceContext';
+import { useFinance, DEFAULT_ADMIN } from '@/context/FinanceContext';
 
 export const LandingPage: React.FC = () => {
-  const { setIsLoggedIn } = useFinance();
+  const { login, register } = useFinance();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [emailInput, setEmailInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  // Login form state
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  // Register form state
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+
+  // Error & Status feedback
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoggedIn(true);
+    setAuthError(null);
+    const res = login(loginEmail, loginPassword);
+    if (!res.success) {
+      setAuthError(res.error || 'Login gagal.');
+    } else {
+      setIsAuthModalOpen(false);
+    }
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+
+    if (regPassword !== regConfirmPassword) {
+      setAuthError('Konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+
+    if (regPassword.length < 5) {
+      setAuthError('Kata sandi minimal 5 karakter.');
+      return;
+    }
+
+    const res = register(regName, regEmail, regPassword);
+    if (!res.success) {
+      setAuthError(res.error || 'Gagal membuat akun.');
+    } else {
+      setIsAuthModalOpen(false);
+    }
+  };
+
+  const handleFillAdmin = () => {
+    setLoginEmail(DEFAULT_ADMIN.email);
+    setLoginPassword(DEFAULT_ADMIN.password);
+    setAuthError(null);
   };
 
   return (
@@ -51,6 +99,7 @@ export const LandingPage: React.FC = () => {
             <button
               onClick={() => {
                 setAuthMode('login');
+                setAuthError(null);
                 setIsAuthModalOpen(true);
               }}
               className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-colors"
@@ -58,10 +107,14 @@ export const LandingPage: React.FC = () => {
               Masuk
             </button>
             <button
-              onClick={() => setIsLoggedIn(true)}
+              onClick={() => {
+                setAuthMode('register');
+                setAuthError(null);
+                setIsAuthModalOpen(true);
+              }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all hover:scale-105"
             >
-              <span>Buka Aplikasi</span>
+              <span>Daftar Akun Baru</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -93,20 +146,26 @@ export const LandingPage: React.FC = () => {
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={() => setIsLoggedIn(true)}
+              onClick={() => {
+                setAuthMode('register');
+                setAuthError(null);
+                setIsAuthModalOpen(true);
+              }}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              <span>Mulai Kelola Keuangan Sekarang</span>
+              <span>Buat Akun Baru (Data Real Kosong)</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => {
-                setAuthMode('register');
+                setAuthMode('login');
+                handleFillAdmin();
                 setIsAuthModalOpen(true);
               }}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-semibold text-amber-300 hover:text-white bg-slate-900 border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-lg shadow-amber-500/10"
             >
-              Registrasi Akun Baru
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <span>Masuk Sebagai Admin</span>
             </button>
           </div>
 
@@ -114,19 +173,19 @@ export const LandingPage: React.FC = () => {
           <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
             <div className="p-3">
               <p className="text-2xl font-black text-white">100%</p>
-              <p className="text-xs text-slate-400 mt-0.5">Kontrol Anggaran</p>
+              <p className="text-xs text-slate-400 mt-0.5">Data Real Bersih</p>
             </div>
             <div className="p-3">
-              <p className="text-2xl font-black text-emerald-400">Rp5 Juta</p>
-              <p className="text-xs text-slate-400 mt-0.5">Template Siap Pakai</p>
+              <p className="text-2xl font-black text-emerald-400">Multi-Akun</p>
+              <p className="text-xs text-slate-400 mt-0.5">Tersinkronisasi per Gmail</p>
             </div>
             <div className="p-3">
               <p className="text-2xl font-black text-teal-400">PDF & Excel</p>
               <p className="text-xs text-slate-400 mt-0.5">Export Laporan Cepat</p>
             </div>
             <div className="p-3">
-              <p className="text-2xl font-black text-cyan-400">Real-Time</p>
-              <p className="text-xs text-slate-400 mt-0.5">Notifikasi & Peringatan</p>
+              <p className="text-2xl font-black text-cyan-400">Admin Ready</p>
+              <p className="text-xs text-slate-400 mt-0.5">Akses Khusus Pengelola</p>
             </div>
           </div>
         </div>
@@ -144,7 +203,6 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Dashboard Ringkasan */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:scale-110 transition-transform">
               <TrendingUp className="w-6 h-6" />
@@ -155,18 +213,16 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Transaksi */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
             <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-5 group-hover:scale-110 transition-transform">
               <WalletCards className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white mb-2">2. Pencatatan Transaksi</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Catat pemasukan dari gaji, bisnis, dan pengeluaran harian lengkap dengan kategori, metode bayar, dan filter pencarian canggih.
+              Catat pemasukan dari gaji, bisnis, dan pengeluaran harian lengkap dengan kategori, metode bayar, dan filter pencarian.
             </p>
           </div>
 
-          {/* Anggaran */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5 group-hover:scale-110 transition-transform">
               <PieChart className="w-6 h-6" />
@@ -177,7 +233,6 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Tabungan */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 group-hover:scale-110 transition-transform">
               <PiggyBank className="w-6 h-6" />
@@ -188,7 +243,6 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Tagihan */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
             <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 group-hover:scale-110 transition-transform">
               <Receipt className="w-6 h-6" />
@@ -199,7 +253,6 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Laporan */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group">
             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-5 group-hover:scale-110 transition-transform">
               <FileBarChart className="w-6 h-6" />
@@ -212,44 +265,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Monthly Financial Workflow Timeline */}
-      <section className="py-16 px-6 max-w-5xl mx-auto w-full">
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden">
-          <div className="mb-8">
-            <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
-              Roadmap Siklus Keuangan
-            </span>
-            <h3 className="text-2xl font-bold text-white mt-1">Alur Praktis Pengelolaan Setiap Bulan</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs font-bold text-emerald-400 block mb-1">Tanggal 1</span>
-              <p className="text-sm font-semibold text-white">Input Gaji & Anggaran</p>
-              <p className="text-xs text-slate-400 mt-1">Catat pemasukan dan alokasikan pos-pos belanja.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs font-bold text-teal-400 block mb-1">Tanggal 2–14</span>
-              <p className="text-sm font-semibold text-white">Catat & Pantau Harian</p>
-              <p className="text-xs text-slate-400 mt-1">Input mutasi harian dan jaga batas pengeluaran.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs font-bold text-amber-400 block mb-1">Tanggal 15–25</span>
-              <p className="text-sm font-semibold text-white">Evaluasi Pertengahan</p>
-              <p className="text-xs text-slate-400 mt-1">Periksa batas sisa anggaran dan cegah pemborosan.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs font-bold text-rose-400 block mb-1">Akhir Bulan</span>
-              <p className="text-sm font-semibold text-white">Laporan & Evaluasi</p>
-              <p className="text-xs text-slate-400 mt-1">Cek sisa saldo, lunasi tagihan, dan cetak PDF.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="mt-auto py-8 px-6 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500">
         <p>© 2026 MyFinance – Personal Finance Management System. Dilengkapi standar estetika 21st UI.</p>
@@ -257,73 +272,196 @@ export const LandingPage: React.FC = () => {
 
       {/* Login / Register Modal */}
       {isAuthModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8">
-            <h3 className="text-xl font-bold text-white text-center">
-              {authMode === 'login' ? 'Masuk ke MyFinance' : 'Daftar Akun Baru'}
-            </h3>
-            <p className="text-xs text-slate-400 text-center mt-1 mb-6">
-              Kelola keuangan pribadi Anda sekarang juga
-            </p>
-
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="nama@example.com"
-                  value={emailInput}
-                  onChange={e => setEmailInput(e.target.value)}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
-                />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8">
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto mb-3">
+                {authMode === 'login' ? <LogIn className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
               </div>
+              <h3 className="text-xl font-bold text-white">
+                {authMode === 'login' ? 'Masuk ke MyFinance' : 'Daftar Akun Baru'}
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {authMode === 'login'
+                  ? 'Gunakan Gmail atau akun terdaftar Anda untuk masuk'
+                  : 'Akun baru dimulai dengan data real bersih / kosong'}
+              </p>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Kata Sandi
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={passwordInput}
-                  onChange={e => setPasswordInput(e.target.value)}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
-                />
+            {/* Error Message */}
+            {authError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{authError}</span>
               </div>
+            )}
 
+            {authMode === 'login' ? (
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Email / Gmail
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      placeholder="nama@gmail.com"
+                      value={loginEmail}
+                      onChange={e => setLoginEmail(e.target.value)}
+                      required
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Kata Sandi
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={e => setLoginPassword(e.target.value)}
+                      required
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Admin Auto-fill button */}
+                <button
+                  type="button"
+                  onClick={handleFillAdmin}
+                  className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Isi Otomatis Akun Admin (Chairulanwarr003@gmail.com)</span>
+                </button>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all"
+                >
+                  Masuk Sekarang
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('register');
+                      setAuthError(null);
+                    }}
+                    className="text-xs text-emerald-400 hover:underline"
+                  >
+                    Belum punya akun? Buat akun baru di sini
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Nama Lengkap
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Nama Anda"
+                      value={regName}
+                      onChange={e => setRegName(e.target.value)}
+                      required
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Email / Gmail
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      placeholder="contoh@gmail.com"
+                      value={regEmail}
+                      onChange={e => setRegEmail(e.target.value)}
+                      required
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Kata Sandi
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={regPassword}
+                      onChange={e => setRegPassword(e.target.value)}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Konfirmasi Sandi
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={regConfirmPassword}
+                      onChange={e => setRegConfirmPassword(e.target.value)}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-[11px] text-slate-400">
+                  ✨ Akun baru akan dibuat dengan <strong>data finansial bersih (0 transaksi, 0 saldo)</strong> sehingga Anda dapat menginput keuangan asli Anda.
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all"
+                >
+                  Daftar Akun Baru
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('login');
+                      setAuthError(null);
+                    }}
+                    className="text-xs text-emerald-400 hover:underline"
+                  >
+                    Sudah punya akun? Masuk di sini
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="pt-4 text-center border-t border-slate-800 mt-4">
               <button
-                type="submit"
-                className="w-full py-3 rounded-xl text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/25 transition-all"
+                type="button"
+                onClick={() => setIsAuthModalOpen(false)}
+                className="text-xs text-slate-500 hover:text-slate-300"
               >
-                {authMode === 'login' ? 'Masuk Sekarang' : 'Daftar & Mulai'}
+                Tutup Jendela
               </button>
-
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                  className="text-xs text-emerald-400 hover:underline"
-                >
-                  {authMode === 'login'
-                    ? 'Belum punya akun? Buat akun di sini'
-                    : 'Sudah punya akun? Masuk di sini'}
-                </button>
-              </div>
-
-              <div className="pt-2 text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsAuthModalOpen(false)}
-                  className="text-xs text-slate-500 hover:text-slate-300"
-                >
-                  Tutup
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

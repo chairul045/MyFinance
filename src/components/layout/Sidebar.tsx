@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { cn } from '@/lib/utils';
@@ -33,7 +34,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, setIsOpenMobile }) => {
-  const { activeTab, setActiveTab, setIsLoggedIn, user } = useFinance();
+  const { activeTab, setActiveTab, logout, user } = useFinance();
 
   const handleNavClick = (tabId: string) => {
     setActiveTab(tabId);
@@ -65,9 +66,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, setIsOpenMobile 
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-lg text-white tracking-tight">MyFinance</span>
-              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                PRO
-              </span>
+              {user.role === 'admin' ? (
+                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-0.5">
+                  <ShieldCheck className="w-2.5 h-2.5" />
+                  ADMIN
+                </span>
+              ) : (
+                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  REAL
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400">Personal Management</p>
           </div>
@@ -114,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, setIsOpenMobile 
               <span>Smart Financial Tips</span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Alokasikan 20% untuk tabungan di awal bulan sebelum pengeluaran lain.
+              Catat setiap mutasi secara real-time untuk menjaga akurasi anggaran bulanan Anda.
             </p>
           </div>
         </div>
@@ -124,16 +132,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, setIsOpenMobile 
           <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/40 border border-slate-800">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center font-bold text-emerald-400 text-sm">
-                {user.name.charAt(0)}
+                {(user.name || 'U').charAt(0)}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-slate-200 truncate">{user.name}</p>
-                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                <p className="text-xs font-medium text-slate-200 truncate">{user.name || 'User'}</p>
+                <p className="text-[10px] text-slate-400 truncate">{user.email || 'user@email.com'}</p>
               </div>
             </div>
             <button
-              onClick={() => setIsLoggedIn(false)}
-              title="Keluar ke Landing Page"
+              onClick={() => logout()}
+              title="Keluar / Ganti Akun"
               className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <LogOut className="w-4 h-4" />

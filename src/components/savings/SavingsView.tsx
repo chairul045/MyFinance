@@ -125,7 +125,22 @@ export const SavingsView: React.FC = () => {
 
       {/* Goal Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {savingsGoals.map(goal => {
+        {savingsGoals.length === 0 ? (
+          <div className="col-span-full p-12 text-center rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+            <PiggyBank className="w-12 h-12 text-teal-400 mx-auto mb-3 opacity-60" />
+            <h3 className="text-base font-bold text-white">Belum Ada Target Menabung</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+              Mulai rencanakan impian finansial Anda seperti Dana Darurat, Kendaraan, atau Liburan.
+            </p>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="mt-5 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-semibold text-xs shadow-md shadow-teal-500/20 transition-all hover:scale-105"
+            >
+              + Buat Target Tabungan Pertama
+            </button>
+          </div>
+        ) : (
+          savingsGoals.map(goal => {
           const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
           const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
           const isCompleted = goal.currentAmount >= goal.targetAmount;
@@ -224,7 +239,7 @@ export const SavingsView: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
 
       {/* Create Goal Modal */}

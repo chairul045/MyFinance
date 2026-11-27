@@ -7,14 +7,22 @@ import {
   SavingsGoal,
   Bill,
   UserProfile,
+  UserAccount,
 } from '@/types/finance';
 import {
-  INITIAL_USER,
   INITIAL_BUDGETS,
   INITIAL_TRANSACTIONS,
   INITIAL_SAVINGS_GOALS,
   INITIAL_BILLS,
 } from '@/data/initialData';
+
+export const DEFAULT_ADMIN: UserAccount = {
+  name: 'Chairul Anwar (Admin)',
+  email: 'Chairulanwarr003@gmail.com',
+  password: 'Chirull00_',
+  role: 'admin',
+  createdAt: '2026-11-27T00:00:00Z',
+};
 
 interface FinanceContextType {
   user: UserProfile;
@@ -27,9 +35,13 @@ interface FinanceContextType {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   isLoggedIn: boolean;
-  setIsLoggedIn: (val: boolean) => void;
   theme: 'dark' | 'light';
   setTheme: (theme: 'dark' | 'light') => void;
+  
+  // Auth methods
+  login: (email: string, password: string) => { success: boolean; error?: string };
+  register: (name: string, email: string, password: string) => { success: boolean; error?: string };
+  logout: () => void;
   
   // Transactions
   addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt'>) => void;
@@ -58,7 +70,8 @@ interface FinanceContextType {
   budgetAlerts: { category: string; spent: number; limit: number; percent: number }[];
   
   // Data management
-  resetToDefaultData: () => void;
+  loadDemoData: () => void;
+  clearAllData: () => void;
   exportBackup: () => void;
   importBackup: (jsonData: string) => boolean;
 }
@@ -66,46 +79,56 @@ interface FinanceContextType {
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  USER: 'myfinance_user',
-  TRANSACTIONS: 'myfinance_transactions',
-  BUDGETS: 'myfinance_budgets',
-  SAVINGS: 'myfinance_savings',
-  BILLS: 'myfinance_bills',
+  ACCOUNTS: 'myfinance_registered_accounts',
+  SESSION: 'myfinance_active_session_email',
   THEME: 'myfinance_theme',
-  LOGGED_IN: 'myfinance_is_logged_in',
 };
+
+const getUserDataKey = (email: string) => `myfinance_userdata_${email.toLowerCase().trim()}`;
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentMonth, setCurrentMonth] = useState('2026-11');
   const [theme, setThemeState] = useState<'dark' | 'light'>('dark');
 
-  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [budgets, setBudgets] = useState<Budget[]>(INITIAL_BUDGETS);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(INITIAL_SAVINGS_GOALS);
-  const [bills, setBills] = useState<Bill[]>(INITIAL_BILLS);
+  const [user, setUser] = useState<UserProfile>({
+    name: '',
+    email: '',
+    monthlyIncomeTarget: 0,
+    currency: 'IDR',
+    role: 'user',
+  });
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [bills, setBills] = useState<Bill[]>([]);
 
-  // Load from localStorage
+  // Initialize and load accounts / session
   useEffect(() => {
     try {
-      const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
-      if (savedUser) setUser(JSON.parse(savedUser));
+      // 1. Ensure registered accounts list exists with DEFAULT_ADMIN
+      const savedAccountsRaw = localStorage.getItem(STORAGE_KEYS.ACCOUNTS);
+      let accounts: UserAccount[] = savedAccountsRaw ? JSON.parse(savedAccountsRaw) : [];
+      
+      const adminExists = accounts.some(
+        a => a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase()
+      );
+      if (!adminExists) {
+        accounts = [DEFAULT_ADMIN, ...accounts];
+        localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+      } else {
+        // Update admin password if changed
+        accounts = accounts.map(a =>
+          a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase()
+            ? { ...a, password: DEFAULT_ADMIN.password, role: 'admin' }
+            : a
+        );
+        localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+      }
 
-      const savedTx = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
-      if (savedTx) setTransactions(JSON.parse(savedTx));
-
-      const savedBudgets = localStorage.getItem(STORAGE_KEYS.BUDGETS);
-      if (savedBudgets) setBudgets(JSON.parse(savedBudgets));
-
-      const savedSavings = localStorage.getItem(STORAGE_KEYS.SAVINGS);
-      if (savedSavings) setSavingsGoals(JSON.parse(savedSavings));
-
-      const savedBills = localStorage.getItem(STORAGE_KEYS.BILLS);
-      if (savedBills) setBills(JSON.parse(savedBills));
-
+      // 2. Load theme
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) as 'dark' | 'light' | null;
       if (savedTheme) {
         setThemeState(savedTheme);
@@ -114,40 +137,205 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         document.documentElement.classList.add('dark');
       }
 
-      const savedLoggedIn = localStorage.getItem(STORAGE_KEYS.LOGGED_IN);
-      if (savedLoggedIn !== null) {
-        setIsLoggedIn(savedLoggedIn === 'true');
+      // 3. Check active session
+      const activeSessionEmail = localStorage.getItem(STORAGE_KEYS.SESSION);
+      if (activeSessionEmail) {
+        const foundAccount = accounts.find(
+          a => a.email.toLowerCase() === activeSessionEmail.toLowerCase()
+        );
+        if (foundAccount) {
+          loadUserData(foundAccount.email, foundAccount.name, foundAccount.role);
+          setIsLoggedIn(true);
+        }
       }
     } catch (e) {
-      console.error('Failed to parse stored finance data:', e);
+      console.error('Failed to initialize FinanceContext:', e);
     } finally {
       setIsLoaded(true);
     }
   }, []);
 
-  // Save to localStorage
-  useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
-      localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
-      localStorage.setItem(STORAGE_KEYS.SAVINGS, JSON.stringify(savingsGoals));
-      localStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify(bills));
-      localStorage.setItem(STORAGE_KEYS.THEME, theme);
-      localStorage.setItem(STORAGE_KEYS.LOGGED_IN, String(isLoggedIn));
-    } catch (e) {
-      console.error('Failed to sync to localStorage:', e);
-    }
-  }, [user, transactions, budgets, savingsGoals, bills, theme, isLoggedIn, isLoaded]);
+  // Helper to load or initialize user data
+  const loadUserData = (email: string, name: string, role: 'admin' | 'user' = 'user') => {
+    const dataKey = getUserDataKey(email);
+    const storedDataRaw = localStorage.getItem(dataKey);
 
+    if (storedDataRaw) {
+      try {
+        const parsed = JSON.parse(storedDataRaw);
+        setUser(parsed.user || { name, email, monthlyIncomeTarget: 0, currency: 'IDR', role });
+        setTransactions(parsed.transactions || []);
+        setBudgets(parsed.budgets || []);
+        setSavingsGoals(parsed.savingsGoals || []);
+        setBills(parsed.bills || []);
+        return;
+      } catch (err) {
+        console.error('Failed to parse user data:', err);
+      }
+    }
+
+    // New clean data
+    const initialClean = {
+      user: { name, email, monthlyIncomeTarget: 0, currency: 'IDR', role },
+      transactions: [],
+      budgets: [],
+      savingsGoals: [],
+      bills: [],
+    };
+    setUser(initialClean.user);
+    setTransactions(initialClean.transactions);
+    setBudgets(initialClean.budgets);
+    setSavingsGoals(initialClean.savingsGoals);
+    setBills(initialClean.bills);
+    localStorage.setItem(dataKey, JSON.stringify(initialClean));
+  };
+
+  // Sync current user's data to localStorage whenever state changes
+  useEffect(() => {
+    if (!isLoaded || !isLoggedIn || !user.email) return;
+    try {
+      const dataKey = getUserDataKey(user.email);
+      const dataToSave = {
+        user,
+        transactions,
+        budgets,
+        savingsGoals,
+        bills,
+        lastUpdated: new Date().toISOString(),
+      };
+      localStorage.setItem(dataKey, JSON.stringify(dataToSave));
+    } catch (e) {
+      console.error('Failed to sync user data to localStorage:', e);
+    }
+  }, [user, transactions, budgets, savingsGoals, bills, isLoggedIn, isLoaded]);
+
+  // Auth: Login
+  const login = (emailInput: string, passwordInput: string): { success: boolean; error?: string } => {
+    try {
+      const savedAccountsRaw = localStorage.getItem(STORAGE_KEYS.ACCOUNTS);
+      const accounts: UserAccount[] = savedAccountsRaw ? JSON.parse(savedAccountsRaw) : [DEFAULT_ADMIN];
+
+      const found = accounts.find(
+        a => a.email.toLowerCase().trim() === emailInput.toLowerCase().trim()
+      );
+
+      if (!found) {
+        return { success: false, error: 'Email belum terdaftar. Silakan buat akun baru.' };
+      }
+
+      if (found.password !== passwordInput) {
+        return { success: false, error: 'Kata sandi salah. Silakan coba lagi.' };
+      }
+
+      // Valid: load user data
+      loadUserData(found.email, found.name, found.role);
+      localStorage.setItem(STORAGE_KEYS.SESSION, found.email);
+      setIsLoggedIn(true);
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Terjadi kesalahan sistem saat login.' };
+    }
+  };
+
+  // Auth: Register (New account is strictly clean/empty)
+  const register = (
+    nameInput: string,
+    emailInput: string,
+    passwordInput: string
+  ): { success: boolean; error?: string } => {
+    try {
+      const cleanEmail = emailInput.toLowerCase().trim();
+      if (!cleanEmail || !nameInput.trim() || !passwordInput) {
+        return { success: false, error: 'Semua kolom wajib diisi.' };
+      }
+
+      const savedAccountsRaw = localStorage.getItem(STORAGE_KEYS.ACCOUNTS);
+      const accounts: UserAccount[] = savedAccountsRaw ? JSON.parse(savedAccountsRaw) : [DEFAULT_ADMIN];
+
+      const alreadyExists = accounts.some(a => a.email.toLowerCase().trim() === cleanEmail);
+      if (alreadyExists) {
+        return { success: false, error: 'Email ini sudah terdaftar. Silakan langsung masuk (login).' };
+      }
+
+      // Create new account
+      const newAccount: UserAccount = {
+        name: nameInput.trim(),
+        email: cleanEmail,
+        password: passwordInput,
+        role: 'user',
+        createdAt: new Date().toISOString(),
+      };
+
+      const updatedAccounts = [...accounts, newAccount];
+      localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(updatedAccounts));
+
+      // Strictly empty initial real data
+      const initialClean = {
+        user: {
+          name: newAccount.name,
+          email: newAccount.email,
+          monthlyIncomeTarget: 0,
+          currency: 'IDR',
+          role: 'user' as const,
+        },
+        transactions: [],
+        budgets: [],
+        savingsGoals: [],
+        bills: [],
+      };
+
+      const dataKey = getUserDataKey(cleanEmail);
+      localStorage.setItem(dataKey, JSON.stringify(initialClean));
+
+      // Automatically log them in
+      setUser(initialClean.user);
+      setTransactions([]);
+      setBudgets([]);
+      setSavingsGoals([]);
+      setBills([]);
+      localStorage.setItem(STORAGE_KEYS.SESSION, cleanEmail);
+      setIsLoggedIn(true);
+
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Gagal membuat akun baru.' };
+    }
+  };
+
+  // Auth: Logout
+  const logout = () => {
+    localStorage.removeItem(STORAGE_KEYS.SESSION);
+    setIsLoggedIn(false);
+    setActiveTab('dashboard');
+  };
+
+  // Theme
   const setTheme = (newTheme: 'dark' | 'light') => {
     setThemeState(newTheme);
+    localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+  };
+
+  // Load sample demo data
+  const loadDemoData = () => {
+    setTransactions(INITIAL_TRANSACTIONS);
+    setBudgets(INITIAL_BUDGETS);
+    setSavingsGoals(INITIAL_SAVINGS_GOALS);
+    setBills(INITIAL_BILLS);
+    setUser(prev => ({ ...prev, monthlyIncomeTarget: 5000000 }));
+  };
+
+  // Completely wipe data (real empty)
+  const clearAllData = () => {
+    setTransactions([]);
+    setBudgets([]);
+    setSavingsGoals([]);
+    setBills([]);
+    setUser(prev => ({ ...prev, monthlyIncomeTarget: 0 }));
   };
 
   // Transaction Actions
@@ -273,15 +461,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     })
     .filter(b => b.percent >= 75);
 
-  const resetToDefaultData = () => {
-    setUser(INITIAL_USER);
-    setTransactions(INITIAL_TRANSACTIONS);
-    setBudgets(INITIAL_BUDGETS);
-    setSavingsGoals(INITIAL_SAVINGS_GOALS);
-    setBills(INITIAL_BILLS);
-    localStorage.clear();
-  };
-
   const exportBackup = () => {
     const data = {
       user,
@@ -296,7 +475,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `myfinance-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `myfinance-${user.email || 'backup'}-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -331,9 +510,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         activeTab,
         setActiveTab,
         isLoggedIn,
-        setIsLoggedIn,
         theme,
         setTheme,
+        login,
+        register,
+        logout,
         addTransaction,
         deleteTransaction,
         setBudget,
@@ -350,7 +531,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         totalSavings,
         categorySpending,
         budgetAlerts,
-        resetToDefaultData,
+        loadDemoData,
+        clearAllData,
         exportBackup,
         importBackup,
       }}
