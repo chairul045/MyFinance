@@ -1,14 +1,34 @@
 # MyFinance – Personal Finance Management System
 
-Aplikasi manajemen keuangan pribadi modern dengan estetika 21st UI yang dirancang dengan Next.js 14, TypeScript, Tailwind CSS, Recharts, jsPDF, dan SheetJS.
+[![Deployed with Vercel](https://vercel.com/button)](https://vercel.com)
 
-## Fitur Utama
+Aplikasi manajemen keuangan pribadi modern dengan estetika **21st UI** yang dirancang dengan Next.js 14 (App Router), TypeScript, Tailwind CSS, Recharts, jsPDF, dan SheetJS.
+
+---
+
+## 🔐 Akun & Autentikasi
+
+Aplikasi telah dilengkapi sistem multi-akun terisolasi:
+
+1. **Akun Admin Bawaan**:
+   - **Email**: `Chairulanwarr003@gmail.com`
+   - **Password**: `Chirull00_`
+   - *Tersedia tombol satu-klik "Isi Otomatis Akun Admin" di halaman Login.*
+
+2. **Pendaftaran Akun Baru (User Real)**:
+   - Pengguna dapat membuat akun baru menggunakan alamat Gmail atau email mana pun.
+   - **Data Real Bersih**: Akun baru dimulai dengan data saldo `Rp0`, 0 transaksi, 0 anggaran, 0 tabungan, dan 0 tagihan, siap digunakan untuk pencatatan keuangan asli.
+
+---
+
+## 🌟 Fitur Utama
 
 1. **Dashboard Arus Kas**
    - Saldo saat ini, total pemasukan, total pengeluaran, total tabungan
    - Grafik interaktif pemasukan vs pengeluaran (Recharts)
    - Donut chart distribusi pengeluaran per kategori
    - Peringatan dini anggaran dan ringkasan tagihan terdekat
+   - Opsi *Muat Data Demo* & *Kosongkan Data Real (0)*
 
 2. **Manajemen Transaksi**
    - Catat pemasukan dan pengeluaran harian
@@ -42,11 +62,22 @@ Aplikasi manajemen keuangan pribadi modern dengan estetika 21st UI yang dirancan
    - Mode Dark / Light yang nyaman di mata
    - Backup & Restore data via JSON
 
-## Menjalankan Aplikasi
+---
+
+## 🚀 Menjalankan Secara Lokal
 
 ```bash
+# Install dependencies
+npm install
+
 # Jalankan development server
 npm run dev
 ```
 
 Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
+
+---
+
+## 🌐 Deployment (Vercel)
+
+Proyek ini telah dikonfigurasi secara optimal untuk deployment otomatis di [Vercel](https://vercel.com). Setiap push ke branch `main` pada repository GitHub **[chairul045/MyFinance](https://github.com/chairul045/MyFinance)** akan otomatis memicu build dan deploy versi terbaru.
