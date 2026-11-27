@@ -132,11 +132,15 @@ export function TransactionsClient({
     }
   };
 
+  const filteredRecCategories = categories.filter((c) => c.type === recType);
+  const effectiveRecCategoryId =
+    filteredRecCategories.find((c) => c.id === recCategoryId)?.id || filteredRecCategories[0]?.id || '';
+
   const handleCreateRecurring = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await createRecurringTransactionAction({
       account_id: recAccountId,
-      category_id: recCategoryId,
+      category_id: effectiveRecCategoryId,
       type: recType,
       amount: Number(recAmount),
       description: recDesc,
@@ -378,7 +382,7 @@ export function TransactionsClient({
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form onSubmit={handleCreateRecurring} className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <form onSubmit={handleCreateRecurring} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
             <Input
               placeholder="Deskripsi (mis. Gaji)"
               value={recDesc}
@@ -392,6 +396,15 @@ export function TransactionsClient({
             >
               <option value="expense">Pengeluaran</option>
               <option value="income">Pemasukan</option>
+            </select>
+            <select
+              value={effectiveRecCategoryId}
+              onChange={(e) => setRecCategoryId(e.target.value)}
+              className="h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs"
+            >
+              {filteredRecCategories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
             </select>
             <Input
               type="number"

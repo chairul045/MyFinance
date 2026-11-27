@@ -56,9 +56,10 @@ export function SavingsClient({
   const handleAddContrib = async (goalId: string) => {
     const val = Number(contribAmounts[goalId]);
     if (!val || val <= 0) return;
+    const defaultAccountId = accounts.find((a) => a.is_active)?.id || accounts[0]?.id || null;
     const res = await addSavingsContributionAction({
       goal_id: goalId,
-      account_id: accounts[0]?.id || null,
+      account_id: defaultAccountId,
       amount: val,
       contribution_date: getJakartaDateString(),
       notes: 'Kontribusi tabungan',
