@@ -15,6 +15,7 @@ import {
   INITIAL_SAVINGS_GOALS,
   INITIAL_BILLS,
 } from '@/data/initialData';
+import { supabase } from '@/lib/supabase';
 
 export const DEFAULT_ADMIN: UserAccount = {
   name: 'Chairul Anwar (Admin)',
@@ -168,11 +169,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
-  // Helper to load or initialize user data
-  const loadUserData = (email: string, name: string, role: 'admin' | 'user' = 'user') => {
+  // Helper to load or initialize user data with Supabase Cloud Sync
+  const loadUserData = async (email: string, name: string, role: 'admin' | 'user' = 'user') => {
     const dataKey = getUserDataKey(email);
     const storedDataRaw = localStorage.getItem(dataKey);
 
+    // Initial local baseline
     if (storedDataRaw) {
       try {
         const parsed = JSON.parse(storedDataRaw);
@@ -182,33 +184,97 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSavingsGoals(parsed.savingsGoals || []);
         setBills(parsed.bills || []);
 
-        // If user has existing transactions, check if current month should align with their latest transaction
         if (parsed.transactions && parsed.transactions.length > 0) {
           const latestTx = parsed.transactions[0];
           if (latestTx.date && latestTx.date.length >= 7) {
             setCurrentMonth(latestTx.date.slice(0, 7));
           }
         }
-        return;
       } catch (err) {
         console.error('Failed to parse user data:', err);
       }
+    } else {
+      const initialClean = {
+        user: { name, email, monthlyIncomeTarget: 0, currency: 'IDR', role },
+        transactions: [],
+        budgets: [],
+        savingsGoals: [],
+        bills: [],
+      };
+      setUser(initialClean.user);
+      setTransactions(initialClean.transactions);
+      setBudgets(initialClean.budgets);
+      setSavingsGoals(initialClean.savingsGoals);
+      setBills(initialClean.bills);
+      localStorage.setItem(dataKey, JSON.stringify(initialClean));
     }
 
-    // New clean real data
-    const initialClean = {
-      user: { name, email, monthlyIncomeTarget: 0, currency: 'IDR', role },
-      transactions: [],
-      budgets: [],
-      savingsGoals: [],
-      bills: [],
-    };
-    setUser(initialClean.user);
-    setTransactions(initialClean.transactions);
-    setBudgets(initialClean.budgets);
-    setSavingsGoals(initialClean.savingsGoals);
-    setBills(initialClean.bills);
-    localStorage.setItem(dataKey, JSON.stringify(initialClean));
+    // Supabase Cloud Fetch if configured
+    if (supabase) {
+      try {
+        const [txRes, budgetRes, savingsRes, billsRes] = await Promise.all([
+          supabase.from('transactions').select('*').eq('user_email', email).order('date', { ascending: false }),
+          supabase.from('budgets').select('*').eq('user_email', email),
+          supabase.from('savings_goals').select('*').eq('user_email', email),
+          supabase.from('bills').select('*').eq('user_email', email),
+        ]);
+
+        if (txRes.data && txRes.data.length > 0) {
+          const mappedTx: Transaction[] = txRes.data.map(t => ({
+            id: t.id,
+            type: t.type,
+            amount: Number(t.amount),
+            category: t.category,
+            date: t.date,
+            description: t.description || '',
+            paymentMethod: t.payment_method || '',
+            createdAt: t.created_at || new Date().toISOString(),
+          }));
+          setTransactions(mappedTx);
+        }
+
+        if (budgetRes.data && budgetRes.data.length > 0) {
+          const mappedBudgets: Budget[] = budgetRes.data.map(b => ({
+            id: b.id,
+            category: b.category,
+            allocatedAmount: Number(b.allocated_amount),
+            month: b.month,
+          }));
+          setBudgets(mappedBudgets);
+        }
+
+        if (savingsRes.data && savingsRes.data.length > 0) {
+          const mappedSavings: SavingsGoal[] = savingsRes.data.map(s => ({
+            id: s.id,
+            name: s.name,
+            targetAmount: Number(s.target_amount),
+            currentAmount: Number(s.current_amount || 0),
+            targetDate: s.target_date,
+            category: s.category || '',
+            color: s.color || '#10b981',
+          }));
+          setSavingsGoals(mappedSavings);
+        }
+
+        if (billsRes.data && billsRes.data.length > 0) {
+          const mappedBills: Bill[] = billsRes.data.map(b => ({
+            id: b.id,
+            name: b.name,
+            amount: Number(b.amount),
+            dueDate: b.due_date,
+            category: b.category || '',
+            isPaid: Boolean(b.is_paid),
+            paidDate: b.paid_date || undefined,
+            recurring: b.recurring || 'monthly',
+            reminderDays: b.reminder_days || 3,
+          }));
+          setBills(mappedBills);
+        }
+      } catch (cloudErr) {
+        // Fallback to local storage gracefully if Supabase tables are not yet migrated
+        console.warn('Supabase cloud fetch note:', cloudErr);
+      }
+    }
   };
 
   // Sync current user's data to localStorage whenever state changes
@@ -233,19 +299,20 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Auth: Login
   const login = (emailInput: string, passwordInput: string): { success: boolean; error?: string } => {
     try {
+      const cleanEmail = emailInput.toLowerCase().trim();
       const savedAccountsRaw = localStorage.getItem(STORAGE_KEYS.ACCOUNTS);
       const accounts: UserAccount[] = savedAccountsRaw ? JSON.parse(savedAccountsRaw) : [DEFAULT_ADMIN];
 
       const found = accounts.find(
-        a => a.email.toLowerCase().trim() === emailInput.toLowerCase().trim()
+        a => a.email.toLowerCase().trim() === cleanEmail
       );
 
       if (!found) {
-        return { success: false, error: 'Email belum terdaftar. Silakan buat akun baru.' };
+        return { success: false, error: 'Email atau kata sandi tidak cocok. Silakan periksa kembali.' };
       }
 
       if (found.password !== passwordInput) {
-        return { success: false, error: 'Kata sandi salah. Silakan coba lagi.' };
+        return { success: false, error: 'Email atau kata sandi tidak cocok. Silakan periksa kembali.' };
       }
 
       // Valid: load user data
@@ -308,6 +375,17 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const dataKey = getUserDataKey(cleanEmail);
       localStorage.setItem(dataKey, JSON.stringify(initialClean));
 
+      // Sync profile to Supabase if configured
+      if (supabase) {
+        supabase.from('profiles').upsert([
+          {
+            email: cleanEmail,
+            name: newAccount.name,
+            role: 'user',
+          },
+        ]).then();
+      }
+
       // Automatically log them in
       setUser(initialClean.user);
       setTransactions([]);
@@ -358,9 +436,16 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSavingsGoals([]);
     setBills([]);
     setUser(prev => ({ ...prev, monthlyIncomeTarget: 0 }));
+
+    if (supabase && user.email) {
+      supabase.from('transactions').delete().eq('user_email', user.email).then();
+      supabase.from('budgets').delete().eq('user_email', user.email).then();
+      supabase.from('savings_goals').delete().eq('user_email', user.email).then();
+      supabase.from('bills').delete().eq('user_email', user.email).then();
+    }
   };
 
-  // Transaction Actions - INSTANT AUTO-UPDATE
+  // Transaction Actions - DUAL INSTANT LOCAL + SUPABASE CLOUD
   const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt'>) => {
     const newTx: Transaction = {
       ...tx,
@@ -368,21 +453,41 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       createdAt: new Date().toISOString(),
     };
 
-    // Auto-align active currentMonth to transaction date so user sees it in monthly view immediately
     if (tx.date && tx.date.length >= 7) {
       const txMonth = tx.date.slice(0, 7);
       setCurrentMonth(txMonth);
     }
 
     setTransactions(prev => [newTx, ...prev]);
+
+    // Push to Supabase
+    if (supabase && user.email) {
+      supabase.from('transactions').insert([
+        {
+          id: newTx.id,
+          user_email: user.email,
+          type: newTx.type,
+          amount: newTx.amount,
+          category: newTx.category,
+          date: newTx.date,
+          description: newTx.description,
+          payment_method: newTx.paymentMethod,
+        },
+      ]).then();
+    }
   };
 
   const deleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
+
+    if (supabase) {
+      supabase.from('transactions').delete().eq('id', id).then();
+    }
   };
 
   // Budget Actions
   const setBudget = (budgetData: Omit<Budget, 'id'>) => {
+    const budgetId = 'b-' + Date.now();
     setBudgets(prev => {
       const existingIdx = prev.findIndex(
         b => b.category === budgetData.category && b.month === budgetData.month
@@ -392,12 +497,28 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updated[existingIdx] = { ...updated[existingIdx], ...budgetData };
         return updated;
       }
-      return [...prev, { ...budgetData, id: 'b-' + Date.now() }];
+      return [...prev, { ...budgetData, id: budgetId }];
     });
+
+    if (supabase && user.email) {
+      supabase.from('budgets').upsert([
+        {
+          id: budgetId,
+          user_email: user.email,
+          category: budgetData.category,
+          allocated_amount: budgetData.allocatedAmount,
+          month: budgetData.month,
+        },
+      ]).then();
+    }
   };
 
   const deleteBudget = (id: string) => {
     setBudgets(prev => prev.filter(b => b.id !== id));
+
+    if (supabase) {
+      supabase.from('budgets').delete().eq('id', id).then();
+    }
   };
 
   // Savings Actions
@@ -407,10 +528,29 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       id: 'sg-' + Date.now(),
     };
     setSavingsGoals(prev => [...prev, newGoal]);
+
+    if (supabase && user.email) {
+      supabase.from('savings_goals').insert([
+        {
+          id: newGoal.id,
+          user_email: user.email,
+          name: newGoal.name,
+          target_amount: newGoal.targetAmount,
+          current_amount: newGoal.currentAmount,
+          target_date: newGoal.targetDate,
+          category: newGoal.category,
+          color: newGoal.color,
+        },
+      ]).then();
+    }
   };
 
   const deleteSavingsGoal = (id: string) => {
     setSavingsGoals(prev => prev.filter(s => s.id !== id));
+
+    if (supabase) {
+      supabase.from('savings_goals').delete().eq('id', id).then();
+    }
   };
 
   const adjustSavingsAmount = (id: string, amountChange: number) => {
@@ -418,6 +558,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map(goal => {
         if (goal.id === id) {
           const newAmount = Math.max(0, goal.currentAmount + amountChange);
+          if (supabase) {
+            supabase.from('savings_goals').update({ current_amount: newAmount }).eq('id', id).then();
+          }
           return { ...goal, currentAmount: newAmount };
         }
         return goal;
@@ -432,10 +575,30 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       id: 'bill-' + Date.now(),
     };
     setBills(prev => [...prev, newBill]);
+
+    if (supabase && user.email) {
+      supabase.from('bills').insert([
+        {
+          id: newBill.id,
+          user_email: user.email,
+          name: newBill.name,
+          amount: newBill.amount,
+          due_date: newBill.dueDate,
+          category: newBill.category,
+          is_paid: newBill.isPaid,
+          recurring: newBill.recurring,
+          reminder_days: newBill.reminderDays,
+        },
+      ]).then();
+    }
   };
 
   const deleteBill = (id: string) => {
     setBills(prev => prev.filter(b => b.id !== id));
+
+    if (supabase) {
+      supabase.from('bills').delete().eq('id', id).then();
+    }
   };
 
   const toggleBillPaid = (id: string) => {
@@ -443,10 +606,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map(b => {
         if (b.id === id) {
           const nextState = !b.isPaid;
+          const paidDate = nextState ? new Date().toISOString().split('T')[0] : undefined;
+          if (supabase) {
+            supabase.from('bills').update({ is_paid: nextState, paid_date: paidDate }).eq('id', id).then();
+          }
           return {
             ...b,
             isPaid: nextState,
-            paidDate: nextState ? new Date().toISOString().split('T')[0] : undefined,
+            paidDate,
           };
         }
         return b;
@@ -458,7 +625,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // REAL-TIME ACCUMULATED FINANCIAL METRICS
   // ==========================================
 
-  // 1. Akumulatif keseluruhan (Saldo Kas Nyata yang otomatis berkurang/bertambah seketika)
   const allIncome = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -467,10 +633,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Sisa Uang / Saldo Kas Saat Ini = Total Pemasukan - Total Pengeluaran
   const currentBalance = allIncome - allExpense;
 
-  // 2. Bulan Aktif Terpilih (currentMonth)
   const currentMonthTransactions = transactions.filter(t => t.date.startsWith(currentMonth));
 
   const totalIncome = currentMonthTransactions
