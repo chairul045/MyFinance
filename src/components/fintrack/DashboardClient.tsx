@@ -205,11 +205,28 @@ export function DashboardClient({
           <CardContent>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData}>
-                  <XAxis dataKey="name" fontSize={12} tickLine={false} />
-                  <YAxis fontSize={12} tickLine={false} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}Jt`} />
-                  <Tooltip formatter={(val: number) => [formatRupiah(val), 'Nominal']} />
-                  <Bar dataKey="amount" radius={[8, 8, 0, 0]} />
+                <BarChart data={barData} barCategoryGap="30%">
+                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v) => `${(v / 1000000).toFixed(1)}Jt`}
+                  />
+                  <Tooltip
+                    formatter={(val: number) => [formatRupiah(val), 'Nominal']}
+                    contentStyle={{
+                      borderRadius: '12px',
+                      border: 'none',
+                      boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
+                    {barData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
