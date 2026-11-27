@@ -16,6 +16,9 @@ import {
   Plus,
   RotateCcw,
   ShieldCheck,
+  Equal,
+  Minus,
+  Check,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -29,7 +32,7 @@ import {
   Cell,
 } from 'recharts';
 import { useFinance } from '@/context/FinanceContext';
-import { formatRupiah, formatDateIndo } from '@/lib/utils';
+import { formatRupiah, formatDateIndo, getMonthNameIndo } from '@/lib/utils';
 
 const PIE_COLORS = [
   '#f97316', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#10b981', '#eab308', '#64748b'
@@ -46,9 +49,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
     budgets,
     bills,
     currentMonth,
+    allIncome,
+    allExpense,
+    currentBalance,
     totalIncome,
     totalExpense,
-    currentBalance,
     totalSavings,
     budgetAlerts,
     toggleBillPaid,
@@ -111,7 +116,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
                 )}
               </div>
               <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
-                Akun Anda telah aktif dengan <strong>data finansial bersih / real kosong</strong>. Silakan mulai mencatat transaksi pertama Anda atau atur batas anggaran bulanan.
+                Akun Anda telah aktif dengan <strong>data finansial bersih / real kosong</strong>. Silakan mulai catat pemasukan gaji atau pengeluaran harian Anda.
               </p>
             </div>
           </div>
@@ -122,7 +127,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
               className="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
-              <span>Tambah Transaksi</span>
+              <span>Tambah Transaksi Pertama</span>
             </button>
             <button
               onClick={() => {
@@ -139,7 +144,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
         </div>
       )}
 
-      {/* Admin Quick Switch Bar if data is present */}
+      {/* Admin Quick Switch Bar */}
       {!isDataEmpty && user.role === 'admin' && (
         <div className="p-3 px-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-slate-300">
@@ -155,39 +160,108 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
               }}
               className="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1"
             >
-              <RotateCcw className="w-3 h-3" /> Kosongkan Data Real
+              <RotateCcw className="w-3 h-3" /> Kosongkan Data Real (0)
             </button>
           </div>
         </div>
       )}
 
+      {/* Live Arithmetic Cashflow Indicator (Gaji Berkurang Otomatis Saat Ada Pengeluaran) */}
+      <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+              Kalkulasi Otomatis Sisa Uang Anda (Live Update)
+            </h4>
+          </div>
+          <span className="text-[11px] text-slate-400">
+            Sisa uang langsung berkurang saat ada pengeluaran
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+          {/* Pemasukan */}
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="flex items-center justify-between text-xs text-emerald-400 font-semibold mb-1">
+              <span>Total Pemasukan Kas</span>
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <p className="text-xl font-black text-emerald-300">
+              +{formatRupiah(allIncome)}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-1">
+              Bulan aktif: {formatRupiah(totalIncome)}
+            </p>
+          </div>
+
+          {/* Pengeluaran */}
+          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+            <div className="flex items-center justify-between text-xs text-rose-400 font-semibold mb-1">
+              <span>Total Pengeluaran Kas</span>
+              <TrendingDown className="w-4 h-4" />
+            </div>
+            <p className="text-xl font-black text-rose-400">
+              -{formatRupiah(allExpense)}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-1">
+              Bulan aktif: {formatRupiah(totalExpense)}
+            </p>
+          </div>
+
+          {/* Sisa Kas */}
+          <div className={`p-4 rounded-2xl border ${
+            currentBalance >= 0 
+              ? 'bg-cyan-500/10 border-cyan-500/30' 
+              : 'bg-rose-500/20 border-rose-500/50'
+          }`}>
+            <div className="flex items-center justify-between text-xs font-semibold mb-1">
+              <span className={currentBalance >= 0 ? 'text-cyan-300' : 'text-rose-300'}>
+                Sisa Uang Anda (Tersedia)
+              </span>
+              <Wallet className="w-4 h-4 text-cyan-400" />
+            </div>
+            <p className={`text-xl font-black ${
+              currentBalance >= 0 ? 'text-white' : 'text-rose-400'
+            }`}>
+              ={formatRupiah(currentBalance)}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-1">
+              {currentBalance >= 0 ? 'Saldo kas aman & siap dialokasikan' : 'Peringatan: Saldo defisit!'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Saldo Saat Ini */}
+        {/* Saldo Kas Saat Ini */}
         <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Saldo Saat Ini
+              Sisa Saldo Kas
             </span>
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <Wallet className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <h3 className="text-2xl font-black text-white tracking-tight">
+            <h3 className={`text-2xl font-black tracking-tight ${
+              currentBalance >= 0 ? 'text-white' : 'text-rose-400'
+            }`}>
               {formatRupiah(currentBalance)}
             </h3>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <span>Bulan berjalan: {currentMonth}</span>
+            <p className="text-[11px] text-emerald-400/90 mt-1 flex items-center gap-1 font-medium">
+              <span>● Otomatis update real-time</span>
             </p>
           </div>
         </div>
 
-        {/* Total Pemasukan */}
+        {/* Total Pemasukan Bulan Berjalan */}
         <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Total Pemasukan
+              Pemasukan ({getMonthNameIndo(currentMonth)})
             </span>
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <TrendingUp className="w-5 h-5" />
@@ -197,17 +271,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
             <h3 className="text-2xl font-black text-emerald-400 tracking-tight">
               {formatRupiah(totalIncome)}
             </h3>
-            <p className="text-xs text-emerald-500/80 mt-1 flex items-center gap-1">
-              <span>Aliran kas masuk</span>
+            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+              <span>Akumulatif: {formatRupiah(allIncome)}</span>
             </p>
           </div>
         </div>
 
-        {/* Total Pengeluaran */}
+        {/* Total Pengeluaran Bulan Berjalan */}
         <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800/80 border border-slate-800/90 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Total Pengeluaran
+              Pengeluaran ({getMonthNameIndo(currentMonth)})
             </span>
             <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
               <TrendingDown className="w-5 h-5" />
@@ -217,8 +291,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
             <h3 className="text-2xl font-black text-rose-400 tracking-tight">
               {formatRupiah(totalExpense)}
             </h3>
-            <p className="text-xs text-rose-500/80 mt-1 flex items-center gap-1">
-              <span>{budgetUsagePercent.toFixed(0)}% dari alokasi anggaran</span>
+            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+              <span>Akumulatif: {formatRupiah(allExpense)}</span>
             </p>
           </div>
         </div>
@@ -268,7 +342,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
         <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h4 className="text-base font-bold text-white">Ringkasan Arus Kas</h4>
+              <h4 className="text-base font-bold text-white">Ringkasan Arus Kas ({getMonthNameIndo(currentMonth)})</h4>
               <p className="text-xs text-slate-400">Perbandingan pemasukan vs pengeluaran bulan berjalan</p>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -328,7 +402,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
         <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between">
           <div>
             <h4 className="text-base font-bold text-white">Distribusi Pengeluaran</h4>
-            <p className="text-xs text-slate-400">Proporsi kategori belanja</p>
+            <p className="text-xs text-slate-400">Proporsi kategori belanja bulan ini</p>
           </div>
 
           <div className="h-56 w-full flex items-center justify-center my-2">
@@ -362,7 +436,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
             ) : (
               <div className="text-center py-6 text-slate-500 text-xs">
                 <PieChart className="w-8 h-8 text-slate-700 mx-auto mb-2 opacity-50" />
-                <p>Belum ada data pengeluaran</p>
+                <p>Belum ada data pengeluaran di bulan ini</p>
               </div>
             )}
           </div>
@@ -382,7 +456,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
                 </div>
               ))
             ) : (
-              <p className="text-[11px] text-slate-500 text-center">Data akan otomatis muncul setelah mencatat transaksi</p>
+              <p className="text-[11px] text-slate-500 text-center">Data kategori muncul otomatis setelah input transaksi</p>
             )}
           </div>
         </div>
@@ -395,7 +469,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenAddTx }) => 
           <div className="flex items-center justify-between mb-4">
             <div>
               <h4 className="text-base font-bold text-white">Transaksi Terbaru</h4>
-              <p className="text-xs text-slate-400">Catatan mutasi keuangan terbaru Anda</p>
+              <p className="text-xs text-slate-400">Mutasi keuangan terbaru yang tercatat di sistem</p>
             </div>
             {recentTransactions.length > 0 && (
               <button

@@ -1,10 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { CATEGORIES } from '@/data/initialData';
 import { TransactionType } from '@/types/finance';
+
+const getTodayDateStr = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -19,9 +27,15 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Makan & Minum');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getTodayDateStr());
   const [description, setDescription] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('QRIS / Transfer Bank');
+
+  useEffect(() => {
+    if (isOpen) {
+      setDate(getTodayDateStr());
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

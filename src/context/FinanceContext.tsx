@@ -24,6 +24,14 @@ export const DEFAULT_ADMIN: UserAccount = {
   createdAt: '2026-11-27T00:00:00Z',
 };
 
+// Helper for real current YYYY-MM
+export const getRealCurrentMonth = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
 interface FinanceContextType {
   user: UserProfile;
   transactions: Transaction[];
@@ -61,11 +69,16 @@ interface FinanceContextType {
   deleteBill: (id: string) => void;
   toggleBillPaid: (id: string) => void;
   
-  // Calculations
-  totalIncome: number;
-  totalExpense: number;
-  currentBalance: number;
-  totalSavings: number;
+  // Calculations - Akumulatif Keseluruhan (Real-Time Saldo Dompet)
+  allIncome: number;
+  allExpense: number;
+  currentBalance: number; // Sisa uang bersih akumulatif (Pemasukan - Pengeluaran)
+  
+  // Calculations - Bulan Berjalan
+  totalIncome: number; // Pemasukan bulan aktif
+  totalExpense: number; // Pengeluaran bulan aktif
+  monthBalance: number; // Surplus/defisit bulan aktif
+  totalSavings: number; // Total tabungan
   categorySpending: Record<string, number>;
   budgetAlerts: { category: string; spent: number; limit: number; percent: number }[];
   
@@ -90,7 +103,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentMonth, setCurrentMonth] = useState('2026-11');
+  const [currentMonth, setCurrentMonth] = useState(getRealCurrentMonth());
   const [theme, setThemeState] = useState<'dark' | 'light'>('dark');
 
   const [user, setUser] = useState<UserProfile>({
@@ -168,13 +181,21 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setBudgets(parsed.budgets || []);
         setSavingsGoals(parsed.savingsGoals || []);
         setBills(parsed.bills || []);
+
+        // If user has existing transactions, check if current month should align with their latest transaction
+        if (parsed.transactions && parsed.transactions.length > 0) {
+          const latestTx = parsed.transactions[0];
+          if (latestTx.date && latestTx.date.length >= 7) {
+            setCurrentMonth(latestTx.date.slice(0, 7));
+          }
+        }
         return;
       } catch (err) {
         console.error('Failed to parse user data:', err);
       }
     }
 
-    // New clean data
+    // New clean real data
     const initialClean = {
       user: { name, email, monthlyIncomeTarget: 0, currency: 'IDR', role },
       transactions: [],
@@ -327,6 +348,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSavingsGoals(INITIAL_SAVINGS_GOALS);
     setBills(INITIAL_BILLS);
     setUser(prev => ({ ...prev, monthlyIncomeTarget: 5000000 }));
+    setCurrentMonth('2026-11');
   };
 
   // Completely wipe data (real empty)
@@ -338,13 +360,20 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setUser(prev => ({ ...prev, monthlyIncomeTarget: 0 }));
   };
 
-  // Transaction Actions
+  // Transaction Actions - INSTANT AUTO-UPDATE
   const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt'>) => {
     const newTx: Transaction = {
       ...tx,
       id: 'tx-' + Date.now(),
       createdAt: new Date().toISOString(),
     };
+
+    // Auto-align active currentMonth to transaction date so user sees it in monthly view immediately
+    if (tx.date && tx.date.length >= 7) {
+      const txMonth = tx.date.slice(0, 7);
+      setCurrentMonth(txMonth);
+    }
+
     setTransactions(prev => [newTx, ...prev]);
   };
 
@@ -425,7 +454,23 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  // Calculations for current month
+  // ==========================================
+  // REAL-TIME ACCUMULATED FINANCIAL METRICS
+  // ==========================================
+
+  // 1. Akumulatif keseluruhan (Saldo Kas Nyata yang otomatis berkurang/bertambah seketika)
+  const allIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const allExpense = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // Sisa Uang / Saldo Kas Saat Ini = Total Pemasukan - Total Pengeluaran
+  const currentBalance = allIncome - allExpense;
+
+  // 2. Bulan Aktif Terpilih (currentMonth)
   const currentMonthTransactions = transactions.filter(t => t.date.startsWith(currentMonth));
 
   const totalIncome = currentMonthTransactions
@@ -436,7 +481,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const currentBalance = totalIncome - totalExpense;
+  const monthBalance = totalIncome - totalExpense;
 
   const totalSavings = savingsGoals.reduce((sum, s) => sum + s.currentAmount, 0);
 
@@ -525,9 +570,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addBill,
         deleteBill,
         toggleBillPaid,
+        allIncome,
+        allExpense,
+        currentBalance,
         totalIncome,
         totalExpense,
-        currentBalance,
+        monthBalance,
         totalSavings,
         categorySpending,
         budgetAlerts,

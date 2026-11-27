@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Menu,
   Plus,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { navigationItems } from './Sidebar';
-import { formatRupiah } from '@/lib/utils';
+import { formatRupiah, getMonthNameIndo } from '@/lib/utils';
 
 interface NavbarProps {
   onOpenMobileSidebar: () => void;
@@ -32,6 +32,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     setCurrentMonth,
     budgetAlerts,
     bills,
+    transactions,
+    budgets,
   } = useFinance();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -40,8 +42,39 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // Unpaid bills within next 7 days
   const unpaidBills = bills.filter(b => !b.isPaid);
-
   const totalNotifications = budgetAlerts.length + unpaidBills.length;
+
+  // Generate dynamic months list containing real current date + neighboring months + any transaction/budget month
+  const availableMonths = useMemo(() => {
+    const monthsSet = new Set<string>();
+
+    const now = new Date();
+    // 6 months past to 6 months future
+    for (let i = -6; i <= 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      monthsSet.add(`${y}-${m}`);
+    }
+
+    // Add any months from transactions
+    transactions.forEach(t => {
+      if (t.date && t.date.length >= 7) {
+        monthsSet.add(t.date.slice(0, 7));
+      }
+    });
+
+    // Add any months from budgets
+    budgets.forEach(b => {
+      if (b.month) monthsSet.add(b.month);
+    });
+
+    if (currentMonth) {
+      monthsSet.add(currentMonth);
+    }
+
+    return Array.from(monthsSet).sort((a, b) => b.localeCompare(a));
+  }, [transactions, budgets, currentMonth]);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 md:px-8 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80">
@@ -66,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Month Selector */}
+        {/* Dynamic Month Selector */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs text-slate-300">
           <Calendar className="w-3.5 h-3.5 text-emerald-400" />
           <select
@@ -74,10 +107,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onChange={e => setCurrentMonth(e.target.value)}
             className="bg-transparent border-none outline-none font-medium text-slate-200 cursor-pointer pr-1"
           >
-            <option value="2026-10" className="bg-slate-900 text-white">Oktober 2026</option>
-            <option value="2026-11" className="bg-slate-900 text-white">November 2026</option>
-            <option value="2026-12" className="bg-slate-900 text-white">Desember 2026</option>
-            <option value="2027-01" className="bg-slate-900 text-white">Januari 2027</option>
+            {availableMonths.map(m => (
+              <option key={m} value={m} className="bg-slate-900 text-white">
+                {getMonthNameIndo(m)}
+              </option>
+            ))}
           </select>
         </div>
 
