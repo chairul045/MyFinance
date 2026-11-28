@@ -13,6 +13,8 @@ export interface Profile {
   notify_budget: boolean;
   notify_bills: boolean;
   notify_savings: boolean;
+  role?: 'admin' | 'user';
+  is_admin?: boolean;
 }
 
 export interface Account {

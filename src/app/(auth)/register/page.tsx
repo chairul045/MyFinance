@@ -64,13 +64,27 @@ export default function RegisterPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {serverError && (
-                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300">
-                  {serverError}
+                <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 space-y-2">
+                  <p className="leading-relaxed">{serverError}</p>
+                  {serverError.includes('Login') && (
+                    <Link
+                      href="/login"
+                      className="inline-block font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      → Buka Halaman Login Sekarang
+                    </Link>
+                  )}
                 </div>
               )}
               {serverMessage && (
-                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300">
-                  {serverMessage}
+                <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 space-y-2">
+                  <p className="leading-relaxed">{serverMessage}</p>
+                  <Link
+                    href="/login"
+                    className="inline-block font-semibold text-emerald-800 dark:text-emerald-200 underline"
+                  >
+                    → Masuk ke Halaman Login Sekarang
+                  </Link>
                 </div>
               )}
 

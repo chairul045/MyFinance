@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Wallet, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { loginSchema, type LoginInput } from '@/schemas/auth';
-import { loginAction } from '@/actions/auth';
+import { loginAction, resendConfirmationAction } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,10 +16,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function LoginPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [serverSuccess, setServerSuccess] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -27,6 +30,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginInput) => {
     setServerError(null);
+    setServerSuccess(null);
     const result = await loginAction(data);
     if (!result.success) {
       setServerError(result.error || 'Gagal masuk.');
@@ -34,6 +38,24 @@ export default function LoginPage() {
     }
     router.push(result.redirectTo || '/dashboard');
     router.refresh();
+  };
+
+  const handleResendVerification = async () => {
+    const email = getValues('email');
+    if (!email) {
+      setServerError('Ketik email Anda di kolom email terlebih dahulu untuk mengirim ulang verifikasi.');
+      return;
+    }
+    setIsResending(true);
+    setServerSuccess(null);
+    const res = await resendConfirmationAction(email);
+    setIsResending(false);
+    if (!res.success) {
+      setServerError(res.error || 'Gagal mengirim ulang email verifikasi.');
+    } else {
+      setServerError(null);
+      setServerSuccess(res.message || 'Email verifikasi berhasil dikirim!');
+    }
   };
 
   return (
@@ -58,8 +80,26 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {serverError && (
-                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300">
-                  {serverError}
+                <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 space-y-2">
+                  <p className="leading-relaxed">{serverError}</p>
+                  {(serverError.toLowerCase().includes('konfirmasi') ||
+                    serverError.toLowerCase().includes('verifikasi') ||
+                    serverError.toLowerCase().includes('confirmed')) && (
+                    <button
+                      type="button"
+                      disabled={isResending}
+                      onClick={handleResendVerification}
+                      className="inline-block mt-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {isResending ? 'Mengirim ulang...' : '→ Klik di sini untuk kirim ulang email verifikasi'}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {serverSuccess && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                  {serverSuccess}
                 </div>
               )}
 

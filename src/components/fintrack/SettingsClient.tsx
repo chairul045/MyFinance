@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, ShieldCheck } from 'lucide-react';
 import { updateProfileSettingsAction } from '@/actions/dashboard';
 import { createCategoryAction, deleteCategoryAction } from '@/actions/accounts';
 import { resetPasswordAction } from '@/actions/auth';
@@ -212,6 +212,47 @@ export function SettingsClient({
           </CardContent>
         </Card>
       </div>
+
+      {profile.is_admin && (
+        <Card className="border-amber-500/40 bg-gradient-to-br from-amber-500/5 to-transparent">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    Hak Akses Administrator / Pemilik
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                      SUPER ADMIN
+                    </span>
+                  </CardTitle>
+                  <CardDescription>
+                    Akun Anda ({profile.email}) memiliki hak akses penuh terhadap seluruh fitur sistem Fintrack.
+                  </CardDescription>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400">Status Akses</span>
+                <p className="font-semibold text-emerald-600 dark:text-emerald-400">Aktif & Unlimited</p>
+              </div>
+              <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400">Database Engine</span>
+                <p className="font-semibold text-blue-600 dark:text-blue-400">Supabase PostgreSQL SSR</p>
+              </div>
+              <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400">Level Wewenang</span>
+                <p className="font-semibold text-amber-600 dark:text-amber-400">Root Owner / Admin</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Category Management */}
       <Card>

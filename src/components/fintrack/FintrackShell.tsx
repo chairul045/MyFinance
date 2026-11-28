@@ -113,8 +113,15 @@ export function FintrackShell({
         </nav>
 
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
-          <div className="px-2">
-            <p className="text-xs font-semibold truncate">{profile.full_name || 'Pengguna'}</p>
+          <div className="px-2 space-y-1">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-xs font-semibold truncate">{profile.full_name || 'Pengguna'}</p>
+              {profile.is_admin && (
+                <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  👑 ADMIN
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{profile.email}</p>
           </div>
           <form action={logoutAction}>
@@ -179,7 +186,18 @@ export function FintrackShell({
                 );
               })}
             </nav>
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="px-2 space-y-1">
+                <div className="flex items-center justify-between gap-1.5">
+                  <p className="text-xs font-semibold truncate">{profile.full_name || 'Pengguna'}</p>
+                  {profile.is_admin && (
+                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      👑 ADMIN
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{profile.email}</p>
+              </div>
               <form action={logoutAction}>
                 <button
                   type="submit"

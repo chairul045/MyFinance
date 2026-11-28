@@ -34,11 +34,18 @@ export async function loginAction(formData: unknown): Promise<AuthActionResult> 
   });
 
   if (error || !data.user) {
+    let errorMsg = 'Gagal masuk ke akun.';
+    if (error?.message === 'Invalid login credentials') {
+      errorMsg = 'Email atau password salah.';
+    } else if (error?.message === 'Email not confirmed') {
+      errorMsg = 'Email Anda belum dikonfirmasi. Silakan periksa inbox/spam email Anda, atau matikan opsi "Confirm email" di Dashboard Supabase (Authentication -> Providers -> Email) agar dapat langsung masuk.';
+    } else if (error?.message) {
+      errorMsg = error.message;
+    }
+
     return {
       success: false,
-      error: error?.message === 'Invalid login credentials'
-        ? 'Email atau password salah.'
-        : error?.message || 'Gagal masuk ke akun.',
+      error: errorMsg,
     };
   }
 
@@ -73,17 +80,76 @@ export async function registerAction(formData: unknown): Promise<AuthActionResul
   });
 
   if (error) {
+    const rawMsg = (error.message || '').toLowerCase();
+    if (rawMsg.includes('rate limit')) {
+      return {
+        success: false,
+        error: 'Batas kuota kirim email Supabase tercapai (rate limit). Silakan buka Dashboard Supabase Anda -> Authentication -> Providers -> Email -> nonaktifkan "Confirm email" agar pendaftaran instan tanpa batas kuota email.',
+      };
+    }
+    if (rawMsg.includes('already registered')) {
+      return {
+        success: false,
+        error: 'Email ini sudah terdaftar. Silakan langsung masuk di menu Login.',
+        redirectTo: '/login',
+      };
+    }
+    if (rawMsg.includes('invalid')) {
+      return {
+        success: false,
+        error: 'Format email tidak valid atau dibatasi oleh pengaturan Supabase.',
+      };
+    }
     return { success: false, error: error.message || 'Gagal mendaftar.' };
   }
 
+  // Jika Confirm email di-disable di Supabase, session langsung terbentuk
   if (data.session) {
+    return { success: true, redirectTo: '/onboarding' };
+  }
+
+  // Jika data.session null, coba login langsung (berlaku jika project sudah mematikan email confirmation)
+  const { data: signInData } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+
+  if (signInData?.session) {
     return { success: true, redirectTo: '/onboarding' };
   }
 
   return {
     success: true,
-    message: 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi, lalu masuk.',
+    message: 'Registrasi berhasil! Silakan periksa inbox/spam email Anda untuk verifikasi, atau nonaktifkan opsi "Confirm email" di Dashboard Supabase agar dapat langsung login.',
     redirectTo: '/login',
+  };
+}
+
+export async function resendConfirmationAction(email: string): Promise<AuthActionResult> {
+  if (!email || !email.includes('@')) {
+    return { success: false, error: 'Silakan masukkan alamat email yang valid.' };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email.trim(),
+  });
+
+  if (error) {
+    const raw = (error.message || '').toLowerCase();
+    if (raw.includes('rate limit')) {
+      return {
+        success: false,
+        error: 'Batas kuota email Supabase tercapai. Cara instan: Matikan centang "Confirm email" di Dashboard Supabase (Authentication -> Providers -> Email) agar akun aktif langsung.',
+      };
+    }
+    return { success: false, error: error.message || 'Gagal mengirim ulang email verifikasi.' };
+  }
+
+  return {
+    success: true,
+    message: 'Tautan verifikasi telah dikirim ulang! Silakan periksa kotak masuk dan spam email Anda.',
   };
 }
 

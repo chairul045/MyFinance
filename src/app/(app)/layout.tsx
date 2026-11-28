@@ -2,6 +2,7 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { FintrackShell } from '@/components/fintrack/FintrackShell';
+import { isUserAdmin } from '@/lib/admin';
 import type { Profile } from '@/types/fintrack';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
     profile = (profileRes.data as Profile | null) || null;
     unreadCount = notifRes.count || 0;
+
+    if (profile) {
+      const adminStatus = isUserAdmin(profile.email || user.email);
+      profile.is_admin = adminStatus;
+      profile.role = adminStatus ? 'admin' : 'user';
+    }
   } catch (err: unknown) {
     if (err && typeof err === 'object' && 'digest' in err && String((err as { digest: string }).digest).startsWith('NEXT_REDIRECT')) {
       throw err;
