@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [serverMessage, setServerMessage] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -32,14 +33,28 @@ export default function RegisterPage() {
     const result = await registerAction(data);
     if (!result.success) {
       setServerError(result.error || 'Gagal mendaftar.');
+      if (result.redirectTo) {
+        setIsRedirecting(true);
+        setTimeout(() => {
+          router.push(result.redirectTo!);
+        }, 2000);
+      }
       return;
     }
-    if (result.message) {
-      setServerMessage(result.message);
+
+    if (result.redirectTo) {
+      if (result.message) {
+        setServerMessage(result.message);
+        setIsRedirecting(true);
+        setTimeout(() => {
+          router.push(result.redirectTo!);
+        }, 1800);
+      } else {
+        router.push(result.redirectTo);
+        router.refresh();
+      }
       return;
     }
-    router.push(result.redirectTo || '/onboarding');
-    router.refresh();
   };
 
   return (
@@ -66,7 +81,9 @@ export default function RegisterPage() {
               {serverError && (
                 <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 space-y-2">
                   <p className="leading-relaxed">{serverError}</p>
-                  {serverError.includes('Login') && (
+                  {(serverError.toLowerCase().includes('masuk') ||
+                    serverError.toLowerCase().includes('login') ||
+                    serverError.toLowerCase().includes('terdaftar')) && (
                     <Link
                       href="/login"
                       className="inline-block font-semibold text-blue-600 dark:text-blue-400 hover:underline"
@@ -83,7 +100,7 @@ export default function RegisterPage() {
                     href="/login"
                     className="inline-block font-semibold text-emerald-800 dark:text-emerald-200 underline"
                   >
-                    → Masuk ke Halaman Login Sekarang
+                    → Menuju Halaman Login...
                   </Link>
                 </div>
               )}
@@ -96,6 +113,7 @@ export default function RegisterPage() {
                     id="fullName"
                     placeholder="Budi Santoso"
                     className="pl-9"
+                    disabled={isSubmitting || isRedirecting}
                     {...register('fullName')}
                   />
                 </div>
@@ -113,6 +131,7 @@ export default function RegisterPage() {
                     type="email"
                     placeholder="nama@email.com"
                     className="pl-9"
+                    disabled={isSubmitting || isRedirecting}
                     {...register('email')}
                   />
                 </div>
@@ -130,6 +149,7 @@ export default function RegisterPage() {
                     type="password"
                     placeholder="Minimal 6 karakter"
                     className="pl-9"
+                    disabled={isSubmitting || isRedirecting}
                     {...register('password')}
                   />
                 </div>
@@ -147,6 +167,7 @@ export default function RegisterPage() {
                     type="password"
                     placeholder="Ulangi password"
                     className="pl-9"
+                    disabled={isSubmitting || isRedirecting}
                     {...register('confirmPassword')}
                   />
                 </div>
@@ -155,14 +176,15 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" className="w-full" disabled={isSubmitting || isRedirecting}>
+                {isSubmitting || isRedirecting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Mendaftar...
+                    <Loader2 className="w-4 h-4 animate-spin" />{' '}
+                    {isRedirecting ? 'Mengalihkan ke halaman...' : 'Memproses Pendaftaran...'}
                   </>
                 ) : (
                   <>
-                    Daftar <ArrowRight className="w-4 h-4" />
+                    Daftar Sekarang <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </Button>
